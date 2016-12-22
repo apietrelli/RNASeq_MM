@@ -46,5 +46,14 @@ for i in `ls`; do
   echo "$i finished"  ;
   cd .. ;
 done
+```
 
+## FASTQC
+
+## STAR
+
+### Genome index
+
+```
+STAR --runThreadN 1 --runMode genomeGenerate --genomeDir Homo_sapiens.GRCh38.release.87_GENECODE.v25/ --genomeFastaFiles /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapiens.GRCh38.dna.primary_assembly.fa --sjdbGTFfile /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf --sjdbOverhang 88
 ```
