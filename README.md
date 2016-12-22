@@ -19,7 +19,16 @@ done
 for i in `ls`; do
   echo "Entering $i dir";
   cd $i;
-  cat *R2*.fastq.gz > "$i"_R2.fastq.gz ; 
+  cat *R2*.fastq.gz > "$i"_R2.fastq.gz ;
+  echo "$i finished"  ;
+  cd .. ;
+done
+
+# Remove previous fastq files
+for i in `ls`; do
+  echo "Entering $i dir";
+  cd $i;
+  rm *R1_* ; rm *R2_* ;
   echo "$i finished"  ;
   cd .. ;
 done
