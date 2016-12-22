@@ -1,6 +1,29 @@
 # RNASeq_MM
 
-## Unify the reads chunks deriving from PTP sequencing
+## Install packages
+
+### STAR installation on EMACLINUX
+
+Do all the command as SuperUser
+
+```
+cd /opt
+git clone https://github.com/alexdobin/STAR.git
+
+# Compile it
+cd STAR/source
+sudo make
+
+# Add /opt to PATH
+cd ~
+vi .bashrc
+# Add this line to the bottom of the files
+PATH=$PATH:/opt
+```
+
+## Project Procedures
+
+### Unify the reads chunks deriving from PTP sequencing
 
 ```
 # Entering in the FASTQ dir
@@ -19,7 +42,7 @@ done
 for i in `ls`; do
   echo "Entering $i dir";
   cd $i;
-  cat *R2*.fastq.gz > "$i"_R2.fastq.gz ; 
+  cat *R2*.fastq.gz > "$i"_R2.fastq.gz ;
   echo "$i finished"  ;
   cd .. ;
 done
