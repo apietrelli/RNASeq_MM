@@ -1,6 +1,29 @@
 # RNASeq_MM
 
-## Unify the reads chunks deriving from PTP sequencing
+## Install packages
+
+### STAR installation on EMACLINUX
+
+Do all the command as SuperUser
+
+```
+cd /opt
+git clone https://github.com/alexdobin/STAR.git
+
+# Compile it
+cd STAR/source
+sudo make
+
+# Add /opt to PATH
+cd ~
+vi .bashrc
+# Add this line to the bottom of the files
+PATH=$PATH:/opt
+```
+
+## Project Procedures
+
+### Unify the reads chunks deriving from PTP sequencing
 
 ```
 # Entering in the FASTQ dir
@@ -32,5 +55,14 @@ for i in `ls`; do
   echo "$i finished"  ;
   cd .. ;
 done
+```
 
+## FASTQC
+
+## STAR
+
+### Genome index
+
+```
+STAR --runThreadN 1 --runMode genomeGenerate --genomeDir Homo_sapiens.GRCh38.release.87_GENECODE.v25/ --genomeFastaFiles /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapiens.GRCh38.dna.primary_assembly.fa --sjdbGTFfile /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf --sjdbOverhang 88
 ```
