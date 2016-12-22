@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+
+#### Job Name
+#PBS -N RNAmapping_HSC 
+
+### Working dir
+#PBS -d /mnt/home/pietrelli/Data/HSC/Analisi/mapping
+
+
+### STDOUT and ERR redirection
+#PBS -o RNAmapping_HSC.log
+#PBS -j oe
+
+#### Queue selection
+#PBS -q service
+
+### Request nodes, memory, walltime
+#PBS -l nodes=1:ppn=8
+
+### Permission of written file
+#PBS -W umask 002
+
+### Send an email after job status status is reached. Allowed values for status are:
+### a: when job aborts
+### b: when job begins
+### e: when job ends
+#PBS -m e
+
+### Array jobs (put the number of jobs as the same number of samples to analyse)
+#PBS -t 1-10
+
+### E-mail address
+#PBS -M pietrelli@ingm.org
+
+### Custom Scripts PATH
+export SOURCE_PATH="/mnt/home/pietrelli/bin/source/"
+#export SH_PATH="/mnt/home/pietrelli/bin/ITBApps/"
+
+### REF "1" ENSEMBL style (resource from GATK)
+#export REF="/mnt/home/pietrelli/Data/GATK_bundle/b37/human_g1k_v37.fasta.gz"
+export FASTQ="/mnt/home/pietrelli/Data/HSC/Data/"
+export SAMPLE_LIST="/mnt/home/pietrelli/Data/HSC/Data/Sample_list.all.txt"
+export THREADS="8"
+### STAR Variables
+export INDEX_STAR="/mnt/cdata/db/genome/ensembl/release-79/STAR_index/mus_musculus/"
+export GTF="/mnt/cdata/db/genome/ensembl/release-79/gtf/mus_musculus/Mus_musculus.GRCm38.79_nohaplo.gtf"
+
+
+##########################################
+#                                        #
+#   Output some useful job information.  #
+#                                        #
+##########################################
+
+echo ------------------------------------------------------
+echo -n 'Job is running on node '; cat $PBS_NODEFILE
+echo ------------------------------------------------------
+echo PBS: qsub is running on $PBS_O_HOST
+echo PBS: originating queue is $PBS_O_QUEUE
+echo PBS: executing queue is $PBS_QUEUE
+echo PBS: working directory is $PBS_O_WORKDIR
+echo PBS: execution mode is $PBS_ENVIRONMENT
+echo PBS: job identifier is $PBS_JOBID
+echo PBS: job name is $PBS_JOBNAME
+echo PBS: node file is $PBS_NODEFILE
+echo PBS: current home directory is $PBS_O_HOME
+echo PBS: PATH = $PBS_O_PATH
+echo ------------------------------------------------------
+echo "PBS: Start Time is `date`"
+
+
+######### MAIN ##########
+### Load module
+#module load picard
+module load STAR/2.4.1c
+module load fastqc/0.11.3
+module load samtools/1.2
+module load HTSeq/0.6.1
+TRIMMOMATIC="/opt/trimmomatic/0.33/trimmomatic-0.33.jar"
+
+
+## FUNCTIONS
+STAR_stats_for_R () {
+	SAMPLE_NAME=$2
+	INPUT=`grep "Number of input reads" $1 | cut -f2`
+	N_UNIQUE=`grep "Uniquely mapped reads number" $1 | cut -f2`
+	PERC_UNIQUE=`grep "Uniquely mapped reads %" $1 | cut -f2 | sed 's/%//'`
+	N_MULTI=`grep "Number of reads mapped to multiple loci" $1 | cut -f2`
+	PERC_MULTI=`grep "% of reads mapped to multiple loci" $1 | cut -f2 | sed 's/%//'`
+	N_MANY=`grep "Number of reads mapped to too many loci" $1 | cut -f2`
+	PERC_MANY=`grep "% of reads mapped to too many loci" $1 | cut -f2 | sed 's/%//'`
+	UNMAPPED_MISSMATCH=`grep "% of reads unmapped: too many mismatches" $1 | cut -f2 | sed 's/%//'`
+	UNMAPPED_SHORT=`grep "% of reads unmapped: too short" $1 | cut -f2 | sed 's/%//'`
+	UNMAPPED_UNK=`grep "% of reads unmapped: other" $1 | cut -f2 | sed 's/%//'`
+	
+	MAPPED_TOT=`expr $N_UNIQUE+$N_MULTI+$N_MANY | bc -l`
+	MAPPED_TOT_PERC=`expr $PERC_UNIQUE+$PERC_MULTI+$PERC_MANY | bc -l`
+	
+	UNMAPPED_TOT=`expr $INPUT-$MAPPED_TOT | bc -l`
+	UNMAPPED_TOT_PERC=`expr $UNMAPPED_MISSMATCH+$UNMAPPED_SHORT+$UNMAPPED_UNK | bc -l`
+	
+	MULTI_TOT=`expr $N_MULTI+$N_MANY | bc -l`
+	MULTI_TOT_PERC=`expr $PERC_MULTI+$PERC_MANY | bc -l`
+	
+	echo "Sample_name	Input_reads	Mapped_reads	Mapped_reads_perc	Unmapped_reads	Unmapped_reads_perc	Uniquely_mapped_reads	Uniquely_mapped_reads_perc	MultiMapping_reads	MultiMapping_reads_perc"
+	echo "$SAMPLE_NAME	$INPUT	$MAPPED_TOT	$MAPPED_TOT_PERC	$UNMAPPED_TOT	$UNMAPPED_TOT_PERC	$N_UNIQUE	$PERC_UNIQUE	$MULTI_TOT	$MULTI_TOT_PERC"
+
+}
+
+
+# Go to operative directory
+cd $PBS_O_WORKDIR
+touch test_file
+if [[ ! -w test_file ]]; then 
+        echo "ERROR: You don't have the permission to write in this directory !!!"
+        usage
+        exit 1
+else
+        PATH_DIR=`pwd`
+        if [ ! -d $PATH_DIR/log/ ]; then
+                mkdir -p $PATH_DIR/log/ $PATH_DIR/BAM_files/ $PATH_DIR/stat/ $PATH_DIR/BAM_files/
+        fi
+fi
+rm test_file
+LOG=`echo $PWD/log/`
+READY_BAM=`echo $PWD/BAM_files/ready/`
+SORT_BAM=`echo $PWD/BAM_files`
+ORIGINAL_BAM=`echo $PATH_DIR/BAM_files/original`
+STATS=`echo $PWD/stat`
+
+### Solution Array
+i=`cat ${SAMPLE_LIST} | tail -n +${PBS_ARRAYID} | head -1`
+#echo "[`date +%c`][STEP 1] Trimmomatic starts"
+#java -jar $TRIMMOMATIC PE -threads $THREADS ${FASTQ}"$i"_1.clean.fq.gz ${FASTQ}"$i"_2.clean.fq.gz ${FASTQ}"$i"_1.clean.fq.trimm.gz ${FASTQ}"$i"_unpaired_r1 ${FASTQ}"$i"_2.clean.fq.trimm.gz ${FASTQ}"$i"_unpaired_r2 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+#echo "[`date +%c`] Remove unpaired reads"
+#rm -fr ${FASTQ}"$i"_unpaired_r1 ${FASTQ}"$i"_unpaired_r2
+
+#echo "[`date +%c`][STEP 2] FASTQC"
+#echo "[`date +%c`] Pre-trimming.."
+#mkdir -p ${FASTQ}"$i"_preTrimm
+#fastqc -t $THREADS ${FASTQ}"$i"_1.clean.fq.gz ${FASTQ}"$i"_2.clean.fq.gz -o ${FASTQ}"$i"_preTrimm
+#echo "[`date +%c`] Post-trimming.."
+#mkdir -p ${FASTQ}"$i"_postTrimm
+#fastqc -t $THREADS ${FASTQ}"$i"_1.clean.fq.trimm.gz ${FASTQ}"$i"_2.clean.fq.trimm.gz -o ${FASTQ}"$i"_postTrimm
+
+#echo "[`date +%c`][STEP 3] STAR Mapping - Using trimmed fastq"
+#STAR --genomeDir $INDEX_STAR --runThreadN $THREADS --readFilesIn ${FASTQ}"$i"_1.clean.fq.trimm.gz ${FASTQ}"$i"_2.clean.fq.trimm.gz --readFilesCommand zcat --genomeLoad LoadAndRemove --outFileNamePrefix "$i"_ --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMunmapped Within --outBAMsortingThreadN $THREADS
+#echo "[`date +%c`] Making STAR stats"
+#STAR_stats_for_R "$i"_Log.final.out $i > $STATS/$i.summary_stats
+
+#echo "[`date +%c`][STEP 4] Filtering SAM/BAM file"
+#echo "[`date +%c`] SAM->BAM"
+#samtools view -@ $THREADS -S -b "$i"_Aligned.out.sam > "$i"_Aligned.out.bam
+#echo "[`date +%c`] Sorting BAM.."
+#samtools sort -@ $THREADS "$i"_Aligned.out.bam "$i".sort
+#echo "[`date +%c`] Indexing sorting BAM.."
+#samtools index $i.sort.bam
+#echo "[`date +%c`] Making the HQ BAM file.. (filtering out the MAPQ0 reads)"
+#samtools view -@ $THREADS -b -h -F4 -q255 $i.sort.bam > $i.HQ.bam
+#chmod +x $i.HQ.bam
+#rm "$i"_Aligned.out.bam
+#rm -fr "$i"_Aligned.out.sam
+#rm -fr "$i"__STARtmp
+#echo """[`date +%c`] Alignment DONE."""
+
+#echo "[`date +%c`] [STEP 5] Quantification procedure with HTSEQ"
+#htseq-count -f bam -s no $i.HQ.bam $GTF > $i.HQ.counts
+#echo "[`date +%c`] [STEP 5a] Quantification procedure with HTSEQ - STRANDED"
+#htseq-count -f bam $i.HQ.bam $GTF > $i.HQ.ss.counts
+echo "[`date +%c`] [STEP 5a] Quantification procedure with HTSEQ - STRANDED REVERSE"
+htseq-count -s reverse -f bam $i.HQ.bam $GTF > $i.HQ.ss_rev.counts
+
+echo "PBS: End Time is `date`"

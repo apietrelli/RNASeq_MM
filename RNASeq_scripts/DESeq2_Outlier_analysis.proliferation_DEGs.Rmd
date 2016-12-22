@@ -1,0 +1,352 @@
+---
+title: 'DESeq HSC with "Activation" genes normalization'
+output:
+  html_document:
+    fig_height: 6
+    fig_width: 10
+  pdf_document: default
+---
+
+Description
+
+# Date of anlaysis
+
+```{r timestamp}
+date()
+```
+
+---
+
+# Preparing input files
+
+- Loading library
+
+```{r loading_lib, message=FALSE}
+library("BiocParallel")
+register(MulticoreParam(10))
+library('DESeq2')
+```
+
+- Set Filename and directory
+
+```{r filename}
+csv_path='SampleSheet_HSC_stranded_Proliferation.tsv'
+ref_condition="A"
+outdir="Proliferation"
+### Example sample sheet
+# Sample sheet is SPACE-DELIMITED, with header
+# Example
+# sampleName fileName condition1
+# HET_721 HET_721.HQ.counts HET
+# HET_729 HET_729.HQ.counts HET
+
+sampleTable <- read.table(csv_path,header=TRUE)
+sample_dir='../mapping/'
+```
+
+* Read files and generate "dds"
+
+```{r deseq, message=FALSE}
+## DESIGN
+# Single factor -> CONDITION
+#ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable,directory = sample_dir, design= ~ condition)
+# MULTI FACTOR -> Condition + proliferation status
+ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable,directory = sample_dir, design= ~ condition + type)
+##
+
+# DESeq worker
+dds <- DESeq(ddsHTSeq, parallel=TRUE)
+# Plot dispersion
+plotDispEsts(dds)
+
+## Pre-filtering
+# All samples > 1 in gene count
+dds<-dds[rowSums(counts(dds)) > 1,] 
+# Extracting counts
+raw.counts <- as.data.frame(counts( dds ))
+normalized.counts <- as.data.frame(counts( dds, normalized=TRUE ))
+
+# Relevel the condition
+dds$type <- relevel(dds$type, ref=ref_condition)
+res <- results(dds, parallel=TRUE)
+head(res)
+# Summary of DEGs
+summary(res)
+
+# Stabilizing the variance (takes long...)
+rld <- rlog(dds)
+```
+
+- Gene annotation Mouse
+
+```{r annotation, message=F}
+#retrieve gene data
+library("biomaRt")
+gene_set = rownames(res)
+ensembl=useMart(biomart = "ENSEMBL_MART_ENSEMBL",
+                dataset = "mmusculus_gene_ensembl",
+                host = "feb2014.archive.ensembl.org",
+                path = "/biomart/martservice")
+genes_information = getBM(c("mgi_symbol",
+                            "entrezgene",
+                            "uniprot_genename",
+                            "description",
+                            "gene_biotype",
+                            "chromosome_name",
+                            "strand",
+                            "start_position",
+                            "end_position",
+                            "ensembl_gene_id"),
+                          "ensembl_gene_id",
+                          gene_set, ensembl)
+```
+
+- Generate files for GSEA
+
+```{r export_for_GSEA}
+gene_set = rownames(normalized.counts)
+res_information = getBM(c("ensembl_gene_id",
+                          "mgi_symbol"),
+                          "ensembl_gene_id",
+                          gene_set, ensembl)
+tmpfile = cbind(ensembl_gene_id = rownames(normalized.counts), normalized.counts)
+rownames(tmpfile) <- NULL
+gseafilename = merge(res_information, tmpfile, by = "ensembl_gene_id")[,-1]
+gseafilename = gseafilename[gseafilename$mgi_symbol != "",]
+
+write.table(gseafilename, paste(outdir, "HSC_Results_GSEA_input.tsv", sep = "/"), sep="\t", quote=F, row.names=F)
+
+## Pre-Rank file based on log2FC
+res_df = as.data.frame(res)
+res_df = cbind(ensembl_gene_id = rownames(res_df), res_df)
+rownames(res_df) <- NULL
+rankGSEA = merge(res_information, res_df, by = "ensembl_gene_id")[,-1]
+rankGSEA = rankGSEA[rankGSEA$mgi_symbol != "",]
+rankGSEA = rankGSEA[order(rankGSEA$log2FoldChange, decreasing = F),]
+
+write.table(rankGSEA[,c("mgi_symbol","log2FoldChange")], paste(outdir, "HSC_Results_GSEA_input.rnk", sep = "/"), sep="\t", quote=F, row.names=F)
+```
+
+- Generate "means" DF according to treatment (type A/B proliferation)
+
+```{r means_df, message=F}
+# Variable for the condition
+populations = levels(dds$type)
+
+#Generate 'means' dataframe
+len = length(rowMeans(counts(dds,normalized=TRUE)[,dds$type == populations[19]]))
+means = data.frame(matrix(NA, nrow = len))
+count = 0
+for (pop in populations){
+  print(pop)
+  tryCatch({means[pop] = rowMeans(counts(dds,normalized=TRUE)[,dds$type == pop])},
+           error = function(e) {
+             means[pop] = counts(dds,normalized=TRUE)[,dds$type == pop]
+           })    
+}
+# Remove NA initial column from 'means'
+means = means[,2:length(means)]
+rownames(means) = rownames(normalized.counts)
+
+means$ensembl_gene_id = rownames(means)
+genes_with_information = merge(x = means, y = genes_information, by = "ensembl_gene_id", all.x = TRUE)
+```
+
+- Select significant genes
+
+```{r sigGenes}
+alpha=0.05
+resSig <- res[which(res$padj <=alpha),]
+resSig$ensembl_gene_id=rownames(as.data.frame(resSig))
+downDEGs <- res[which(res$padj <=alpha & res$log2FoldChange < 0),]
+upDEGs <- res[which(res$padj <=alpha & res$log2FoldChange > 0),]
+```
+
+- Write DEGs results with annotation
+
+```{r DEGs_results}
+# Significant gene annotation
+resSig_annot = merge(as.data.frame(resSig), genes_with_information, by="ensembl_gene_id")
+write.table(resSig_annot, paste(outdir, "HSC_DEGs_annotation.xls", sep = "/"), sep="\t", quote=F, row.names=F)
+
+# UP genes
+write.table(resSig_annot[which(resSig_annot$log2FoldChange>=0),], paste(outdir,"HSC_DEGs_UP_annotation.xls", sep = "/"), sep="\t", quote=F, row.names=F)
+# DOWN genes
+write.table(resSig_annot[which(resSig_annot$log2FoldChange<=0),], paste(outdir, "HSC_DEGs_DOWN_annotation.xls", sep = "/"), sep="\t", quote=F, row.names=F)
+```
+
+- Write ALL genes with DESeq statistics (Useful for GSEA)
+
+```{r ALL_results}
+# All genes with annotation
+gene_set = rownames(res)
+res_information = getBM(c("ensembl_gene_id",
+                          "mgi_symbol"),
+                          "ensembl_gene_id",
+                          gene_set, ensembl)
+res2write = cbind(ensembl_gene_id = rownames(res), as.data.frame(res))
+res2write = merge(res2write, res_information, by = "ensembl_gene_id")
+write.table(res2write, paste(outdir,"HSC_DESeq_Results.xls", sep="/"), sep="\t", quote=F, row.names=F)
+```
+
+- Preparing data for plot
+
+```{r preparing_data_for_plot, echo=F}
+
+# Which genes are significant
+ens_genesSig=rownames(resSig)
+
+# Extract annotation
+geneSig = genes_with_information[genes_with_information$ensembl_gene_id %in% ens_genesSig,]
+
+# Create DF for means with geneSig annotation
+means$significant[means$ensembl_gene_id %in% ens_genesSig] <- 1
+means$significant[!(means$ensembl_gene_id %in% ens_genesSig)] <- 0
+genes_with_information$significant[genes_with_information$ensembl_gene_id %in% ens_genesSig] <- 1
+genes_with_information$significant[!(genes_with_information$ensembl_gene_id %in% ens_genesSig)] <- 0
+```
+
+# Visualization
+
+- Plot counts of specific genes
+- "TNF","IL1B","IL6","CXCL1","CXCL10","INSR","LOXL2","CCL2","COL1A1","ACTA2"
+## IFNG - ENSMUSG00000055170
+-> 0 counts in all the samples
+
+```{r plotcounts_specific, message = F}
+# Plot contus of specific genes
+library(ggplot2)
+### List of specific genes
+## From Marica presentation
+gene_list = c("TNF","IL1B","IL6","CXCL1","CXCL10","INSR","LOXL2","CCL2","COL1A1","ACTA2","PECAM1")
+## some cycline
+#gene_list = c("CCNB1","CCNB2")
+
+ensgene_list = sapply(gene_list, function(x){
+  unique(genes_with_information[which(toupper(genes_with_information$mgi_symbol)==x),]$ensembl_gene_id)
+  })
+# Plot gene counts
+#par(mfrow=c(3,1),mar=c(3,5,3,1))
+plots = lapply(names(ensgene_list),function(x){
+  if(length(ensgene_list[[x]]) != 0){
+    data <- plotCounts(dds, gene=ensgene_list[[x]], intgroup=c("condition","type"), normalized=T, returnData=TRUE)
+    ggplot(data, aes(x=type, y=count, colour = condition)) +
+      #scale_y_log10() + 
+      #scale_colour_continuous(high= "red", low =  "black") +
+      geom_point(position=position_jitter(width=.1,height=0), size=5)+
+      geom_text(aes(label=rownames(data)),
+                #position = position_jitter(width=.5,height=0)+
+                hjust=2, 
+                vjust=0)+
+      ggtitle(paste(as.character(x),as.character(ensgene_list[[x]]), sep = " - "))
+    }
+})
+data <- plotCounts(dds, gene=ensgene_list[[1]], intgroup=c("type","condition"), normalized=T, returnData=TRUE)
+plots
+# Gene list are significant?
+gene_list_res=as.data.frame(res[rownames(res) %in% unique(genes_with_information[which(toupper(genes_with_information$mgi_symbol) %in% gene_list ),]$ensembl_gene_id),])
+gene_list_res=cbind(ensembl_gene_id=rownames(gene_list_res), gene_list_res)
+gene_list_res = merge(x = res_information, y = gene_list_res, by = "ensembl_gene_id")
+gene_list_res$significant=gene_list_res$padj<alpha
+gene_list_res
+```
+
+- HSC markers plot
+
+```{r plotcounts_HSC_marker, message = F}
+# Plot contus of specific genes
+library(ggplot2)
+### List of specific genes
+### http://www.nature.com/nprot/journal/v10/n2/pdf/nprot.2015.017.pdf
+### HIGH-retinoid --> GOOD HSC purification --> UP regulation of markers
+### LOW-retinoid --> BAD HSC purification --> DOWN regulation of markers
+### Activation marker genes
+gene_list = c("LRAT","LHX2","HAND2","PDGFRB","VIM", "GFAP", "DES", "PPARG","TGFBR1","ACTA2","BAMBI")
+
+ensgene_list = sapply(gene_list, function(x){
+  unique(genes_with_information[which(toupper(genes_with_information$mgi_symbol)==x),]$ensembl_gene_id)
+  })
+# Plot gene counts
+#par(mfrow=c(3,1),mar=c(3,5,3,1))
+plots = lapply(names(ensgene_list),function(x){
+  if(length(ensgene_list[[x]]) != 0){
+    data <- plotCounts(dds, gene=ensgene_list[[x]], intgroup=c("condition","type"), normalized=T, returnData=TRUE)
+    ggplot(data, aes(x=type, y=count, colour = condition)) +
+      #scale_y_log10() + 
+      #scale_colour_continuous(high= "red", low =  "black") +
+      geom_point(position=position_jitter(width=.1,height=0), size=5)+
+      geom_text(aes(label=rownames(data)),
+                #position = position_jitter(width=.5,height=0)+
+                hjust=2, 
+                vjust=0)+
+      ggtitle(paste(as.character(x),as.character(ensgene_list[[x]]), sep = " - "))
+    }
+})
+data <- plotCounts(dds, gene=ensgene_list[[1]], intgroup=c("type","condition"), normalized=T, returnData=TRUE)
+plots
+# Gene list are significant?
+gene_list_res=as.data.frame(res[rownames(res) %in% unique(genes_with_information[which(toupper(genes_with_information$mgi_symbol) %in% gene_list ),]$ensembl_gene_id),])
+gene_list_res=cbind(ensembl_gene_id=rownames(gene_list_res), gene_list_res)
+gene_list_res = merge(x = res_information, y = gene_list_res, by = "ensembl_gene_id")
+gene_list_res$significant=gene_list_res$padj<alpha
+gene_list_res
+
+```
+
+- PCA
+
+```{r pca, message = F}
+data_PCA <- plotPCA(rld, intgroup = c("type","condition"), returnData=TRUE)
+percentVar <- round(100 * attr(data_PCA, "percentVar"))
+library("ggplot2")
+qplot(PC1, PC2, color=condition, data=data_PCA, label=rownames(data_PCA)) +
+  #scale_colour_gradient(low="black", high="red") +
+  geom_point(aes (shape = factor(type) ), size=4) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + geom_text(vjust = 1.7, nudge_x = 0.05, check_overlap = T)
+
+```
+
+- Scatter plot
+
+```{r scatter, message = F}
+library(ggplot2)
+colScale <- scale_colour_manual(name = "significant", values = c("gray","red"))
+ggplot(genes_with_information, aes(A, B, colour=as.factor(significant), alpha = as.factor(significant))) +
+  geom_point() +
+  colScale +
+  # label
+  #geom_text(aes(label=ifelse((significant==1),toupper(as.character(mgi_symbol)),'')),
+  #          hjust=0, 
+  #          vjust=0, 
+  #          check_overlap = T) +
+  scale_y_log10() +
+  scale_x_log10()
+
+```
+
+- Gene clustering
+
+```{r gene_clust, message = F}
+# DEGs Gene
+library("genefilter")
+library("pheatmap")
+
+mat <- assay(rld)[ which(rownames(rld) %in% rownames(resSig)),]
+mat <- mat - rowMeans(mat)
+# Create Gene name dataframe
+#df_gene <- as.data.frame(rownames(mat))
+#colnames(df_gene) <- "ensembl_gene_id"
+#df_gene = merge(x = df_gene, y = genes_information, by = "ensembl_gene_id", all.x = TRUE)
+# fix NA of BLANK values with ENSID
+#idx_to_fix = which(df_gene$mgi_symbol == "" | is.na(df_gene$mgi_symbol))
+#df_gene[idx_to_fix,]$mgi_symbol = as.vector(df_gene[idx_to_fix,]$ensembl_gene_id)
+#rownames(mat) = unique(df_gene[match(df_gene$ensembl_gene_id,rownames(mat)),]$mgi_symbol)
+# Create condition dataframe
+df <- as.data.frame(colData(rld)[,"type"])
+colnames(df) <- "type"
+rownames(df) <- rownames(colData(rld))
+# Plot the heatmap
+pheatmap(mat, annotation_col = df, show_rownames = F)
+```
+

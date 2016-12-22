@@ -1,0 +1,459 @@
+---
+title: "GSEA Analysis on HSC DEGs"
+author: "apietrelli"
+date: "27/4/2016"
+output: 
+  html_document:
+    fig_height: 8
+    fig_width: 15
+    theme: united
+    toc: yes
+---
+
+```{r date}
+date()
+```
+
+```{r library_loading, echo=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(knitr)
+outdir="../GSEA/GSEA_parsing/"
+```
+
+# GSEA Parsing
+
+Find how many DEGs are in GSEA pathway enriched
+
+```{r read_files, echo=FALSE}
+# DEG file
+DEG_file="RUV_Normalization_27042016/HSC_DEGs_annotation.xls"
+DEG = read.csv(DEG_file, sep = "\t", header = T, stringsAsFactors = F)
+# toupper mgi_symbol
+DEG$mgi_symbol=toupper(DEG$mgi_symbol)
+# remove NA in mgi_symbol
+DEG = DEG[!is.na(DEG$mgi_symbol),]
+
+# All Genes
+AllGenes_file="RUV_Normalization_27042016/HSC_DESeq_Results.xls"
+AllGenes = read.csv(AllGenes_file, sep = "\t", header = T, stringsAsFactors = F)
+# toupper mgi_symbol
+AllGenes$mgi_symbol=toupper(AllGenes$mgi_symbol)
+# remove NA in mgi_symbol
+AllGenes = AllGenes[!is.na(DEG$mgi_symbol),]
+```
+
+```{r GSEA_parsing}
+GSEA_parse=function(GSEA_file,DEG,summary=0){
+  
+  GSEA=read.csv(GSEA_file, sep = "\t", header = T, stringsAsFactors = F)
+
+  # Extract gene belonging to CORE ENRICHMENT
+  GSEA = GSEA[GSEA$CORE.ENRICHMENT=="Yes",]
+  GSEA$mgi_symbol = as.character(GSEA$GENE.SYMBOL)
+  n_GSEA = nrow(GSEA)
+  GeneSet = sub("^([^.]*).*", "\\1", basename(GSEA_file))
+  # Join with DEGs
+  res_data = merge(GSEA,DEG,"mgi_symbol")
+  n_res_data = nrow(res_data)
+  res_data[,"NAME"] = NULL 
+  #print(res_data)
+  #print(GSEA)
+  #print(nrow(res_data))
+  
+    res_vec = data.frame(GeneSet=as.character(GeneSet),
+                         n_GSEA=n_GSEA,
+                         n_gene=n_res_data,
+                         fraction=as.numeric((n_res_data/n_GSEA)*100))
+  if(summary==0){
+    if (nrow(res_data) > 0) {
+      return(as.data.frame(c(res_vec,res_data)))
+    }
+  }
+  else{
+    return(res_vec)
+  }
+}
+
+```
+
+## Hallmark GSEA data parsing
+
+```{r Hallmark_signal2noise}
+## Hallmark
+GSEA_dir="../GSEA/my_analysis.Gsea.1461755156354.Hallmark/"
+
+# Store the geneset significance
+HET_summary_GSEA_file="../GSEA/my_analysis.Gsea.1461755156354.Hallmark/gsea_report_for_HET_1461755156354.xls"
+WT_summary_GSEA_file="../GSEA/my_analysis.Gsea.1461755156354.Hallmark/gsea_report_for_WT_1461755156354.xls"
+HET_summary_GSEA = read.csv(HET_summary_GSEA_file, sep = "\t", header = T, stringsAsFactors = F)
+WT_summary_GSEA = read.csv(WT_summary_GSEA_file, sep = "\t", header = T, stringsAsFactors = F)
+
+HET_summary_GSEA = HET_summary_GSEA[,c("NAME","FDR.q.val")]
+WT_summary_GSEA = WT_summary_GSEA[,c("NAME","FDR.q.val")]
+
+colnames(HET_summary_GSEA) = c("GeneSet","FDR.q.val")
+colnames(WT_summary_GSEA) = c("GeneSet","FDR.q.val")
+
+DEG_HET = DEG[DEG$log2FoldChange>0,]
+DEG_WT = DEG[DEG$log2FoldChange<0,]
+
+# WT
+output_parsing=NULL
+for (file in list.files(GSEA_dir,pattern = "^HALL.*xls")){
+  res_data=GSEA_parse(paste(GSEA_dir,file,sep=""),DEG_WT)
+  output_parsing = rbind(output_parsing,res_data)
+  output_parsing = unique(output_parsing)
+}
+output_parsing$GeneSet = as.character(output_parsing$GeneSet)
+WT_GSEA_parsing.Hallmark = merge(WT_summary_GSEA,output_parsing,"GeneSet")
+
+# HET
+output_parsing=NULL
+for (file in list.files(GSEA_dir,pattern = "^HALL.*xls")){
+  res_data=GSEA_parse(paste(GSEA_dir,file,sep=""),DEG_HET)
+  output_parsing = rbind(output_parsing,res_data)
+  output_parsing = unique(output_parsing)
+}
+output_parsing$GeneSet = as.character(output_parsing$GeneSet)
+HET_GSEA_parsing.Hallmark = merge(HET_summary_GSEA,output_parsing,"GeneSet")
+
+# Summary
+# WT
+summary_parsing=NULL
+for (file in list.files(GSEA_dir,pattern = "^HALL.*xls")){
+  res_data=GSEA_parse(paste(GSEA_dir,file,sep=""),DEG_WT,1)
+  summary_parsing = rbind(summary_parsing,res_data)
+  summary_parsing = unique(summary_parsing)
+}
+output_parsing$GeneSet = as.character(output_parsing$GeneSet)
+WT_GSEA_summary.Hallmark = merge(WT_summary_GSEA,summary_parsing,"GeneSet")
+# HET
+summary_parsing=NULL
+for (file in list.files(GSEA_dir,pattern = "^HALL.*xls")){
+  res_data=GSEA_parse(paste(GSEA_dir,file,sep=""),DEG_HET,1)
+  summary_parsing = rbind(summary_parsing,res_data)
+  summary_parsing = unique(summary_parsing)
+}
+output_parsing$GeneSet = as.character(output_parsing$GeneSet)
+HET_GSEA_summary.Hallmark = merge(HET_summary_GSEA,summary_parsing,"GeneSet")
+
+```
+
+## Hallmark Results
+
+### Hallmark Enriched in WT condition
+```{r write_Hallmark_WT}
+# WT 
+kable(unique(WT_GSEA_summary.Hallmark[order(WT_GSEA_summary.Hallmark$FDR.q.val),1:5]))
+```
+
+### Hallmark Enriched in HET condition
+```{r write_Hallmark_HET}
+# HET
+kable(unique(HET_GSEA_summary.Hallmark[order(HET_GSEA_summary.Hallmark$FDR.q.val),1:5]))
+```
+
+```{r write_Hallmark_files}
+write.table(WT_GSEA_parsing.Hallmark, paste(outdir, "HSC_GSEA.WT.Hallmark.tsv", sep = "/"), sep="\t", quote=F, row.names=F)
+write.table(HET_GSEA_parsing.Hallmark, paste(outdir, "HSC_GSEA.HET.Hallmark.tsv", sep = "/"), sep="\t", quote=F, row.names=F)
+```
+
+## KEGG GSEA data parsing
+
+```{r KEGG_signal2noise}
+GSEA_dir="../GSEA/KEGG.Gsea.1461765083398/"
+output_parsing=NULL
+
+# Store the geneset significance
+HET_summary_GSEA_file=paste(GSEA_dir,"gsea_report_for_HET_1461765083398.xls", sep="")
+WT_summary_GSEA_file=paste(GSEA_dir,"gsea_report_for_WT_1461765083398.xls", sep="")
+HET_summary_GSEA = read.csv(HET_summary_GSEA_file, sep = "\t", header = T, stringsAsFactors = F)
+WT_summary_GSEA = read.csv(WT_summary_GSEA_file, sep = "\t", header = T, stringsAsFactors = F)
+
+HET_summary_GSEA = HET_summary_GSEA[,c("NAME","FDR.q.val")]
+WT_summary_GSEA = WT_summary_GSEA[,c("NAME","FDR.q.val")]
+
+colnames(HET_summary_GSEA) = c("GeneSet","FDR.q.val")
+colnames(WT_summary_GSEA) = c("GeneSet","FDR.q.val")
+
+DEG_HET = DEG[DEG$log2FoldChange>0,]
+DEG_WT = DEG[DEG$log2FoldChange<0,]
+
+# WT
+output_parsing=NULL
+for (file in list.files(GSEA_dir,pattern = "^KEGG.*xls")){
+  res_data=GSEA_parse(paste(GSEA_dir,file,sep=""),DEG_WT)
+  output_parsing = rbind(output_parsing,res_data)
+  output_parsing = unique(output_parsing)
+}
+output_parsing$GeneSet = as.character(output_parsing$GeneSet)
+WT_GSEA_parsing.KEGG = merge(WT_summary_GSEA,output_parsing,"GeneSet")
+
+# HET
+output_parsing=NULL
+for (file in list.files(GSEA_dir,pattern = "^KEGG.*xls")){
+  res_data=GSEA_parse(paste(GSEA_dir,file,sep=""),DEG_HET)
+  output_parsing = rbind(output_parsing,res_data)
+  output_parsing = unique(output_parsing)
+}
+output_parsing$GeneSet = as.character(output_parsing$GeneSet)
+HET_GSEA_parsing.KEGG = merge(HET_summary_GSEA,output_parsing,"GeneSet")
+
+# Summary
+# WT
+summary_parsing=NULL
+for (file in list.files(GSEA_dir,pattern = "^KEGG.*xls")){
+  res_data=GSEA_parse(paste(GSEA_dir,file,sep=""),DEG_WT,1)
+  summary_parsing = rbind(summary_parsing,res_data)
+  summary_parsing = unique(summary_parsing)
+}
+output_parsing$GeneSet = as.character(output_parsing$GeneSet)
+WT_GSEA_summary.KEGG = merge(WT_summary_GSEA,summary_parsing,"GeneSet")
+# HET
+summary_parsing=NULL
+for (file in list.files(GSEA_dir,pattern = "^KEGG.*xls")){
+  res_data=GSEA_parse(paste(GSEA_dir,file,sep=""),DEG_HET,1)
+  summary_parsing = rbind(summary_parsing,res_data)
+  summary_parsing = unique(summary_parsing)
+}
+output_parsing$GeneSet = as.character(output_parsing$GeneSet)
+HET_GSEA_summary.KEGG = merge(HET_summary_GSEA,summary_parsing,"GeneSet")
+```
+
+## KEGG results
+
+### KEGG Enriched in WT condition
+```{r write_KEGG_WT}
+# WT 
+kable(unique(WT_GSEA_summary.KEGG[order(WT_GSEA_summary.KEGG$FDR.q.val),1:5]) )
+```
+
+### KEGG Enriched in HET condition
+
+```{r write_KEGG_HET}
+# HET
+kable(unique(HET_GSEA_summary.KEGG[order(HET_GSEA_summary.KEGG$FDR.q.val),1:5]) )
+```
+
+```{r write_KEGG_files}
+write.table(WT_GSEA_parsing.KEGG, paste(outdir, "HSC_GSEA.WT.KEGG.tsv", sep = "/"), sep="\t", quote=F, row.names=F)
+write.table(HET_GSEA_parsing.KEGG, paste(outdir, "HSC_GSEA.HET.KEGG.tsv", sep = "/"), sep="\t", quote=F, row.names=F)
+```
+
+
+# Visualization
+
+Prepare the input
+
+```{r viz_input_preparation}
+# Hallmark
+WT_hist.Hallmark = melt(unique(WT_GSEA_parsing.Hallmark[,c("GeneSet","n_GSEA","n_gene","FDR.q.val")]),
+                        id.vars = c("GeneSet","FDR.q.val"))
+WT_hist.Hallmark$sample = rep("WT",nrow(WT_hist.Hallmark))
+WT_hist.Hallmark$category = rep("Hallmark",nrow(WT_hist.Hallmark))
+
+HET_hist.Hallmark = melt(unique(HET_GSEA_parsing.Hallmark[,c("GeneSet","n_GSEA","n_gene","FDR.q.val")]),
+                         id.vars = c("GeneSet","FDR.q.val"))
+HET_hist.Hallmark$sample = rep("HET",nrow(HET_hist.Hallmark))
+HET_hist.Hallmark$category = rep("Hallmark",nrow(HET_hist.Hallmark))
+
+# KEGG
+WT_hist.KEGG = melt(unique(WT_GSEA_parsing.KEGG[,c("GeneSet","n_GSEA","n_gene","FDR.q.val")]),
+                         id.vars = c("GeneSet","FDR.q.val"))
+WT_hist.KEGG$sample = rep("WT",nrow(WT_hist.KEGG))
+WT_hist.KEGG$category = rep("KEGG",nrow(WT_hist.KEGG))
+
+HET_hist.KEGG = melt(unique(HET_GSEA_parsing.KEGG[,c("GeneSet","n_GSEA","n_gene","FDR.q.val")]),
+                         id.vars = c("GeneSet","FDR.q.val"))
+HET_hist.KEGG$sample = rep("HET",nrow(HET_hist.KEGG))
+HET_hist.KEGG$category = rep("KEGG",nrow(HET_hist.KEGG))
+
+# Merge to unique dataframe
+data_GSEA = rbind(WT_hist.Hallmark, HET_hist.Hallmark,
+                  WT_hist.KEGG, HET_hist.KEGG)
+
+```
+
+## Histogram plot for the enriched Gene Set and DEGs
+
+Representation of how many DEGs are within the enriched Gene Set
+
+```{r viz_plot_GSEA, fig.width=15, fig.height=10,echo=FALSE}
+fdr=0.1
+ggplot(data = data_GSEA[data_GSEA$FDR.q.val<=fdr,], aes(x=GeneSet, y=value, fill = variable)) +
+  theme(axis.text.x=element_text(angle=30, hjust=1)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  geom_text(aes(label =value), 
+            position=position_dodge(width=0.9),
+            vjust=-0.25,
+            size=3) +
+  ggtitle(paste("GSEA enriched pathways and DEGs overlap (min 1 gene overlap)",fdr,sep=" - FDR<=")) +
+  theme(plot.margin=unit(c(5,0,0,32),"mm")) +
+  facet_grid(sample ~ category, scales = "free")
+
+```
+
+## Clustering for interesting pathways
+
+```{r gene_clust, ignore = TRUE, include = FALSE, message = F}
+# DEGs Gene
+library("genefilter")
+library("pheatmap")
+library("DESeq2")
+alpha=0.1
+
+# Read rld as RDS object from DESeq2_RUV_2Step_norm
+rld=readRDS("RUV_Normalization_27042016/HSC_RUV_rld.rds")
+
+gene_signature = as.character(WT_GSEA_parsing.Hallmark$ensembl_gene_id[WT_GSEA_parsing.Hallmark$GeneSet=="HALLMARK_ALLOGRAFT_REJECTION"])
+
+mat <- assay(rld)[ which(rownames(rld) %in% gene_signature),]
+mat <- mat - rowMeans(mat)
+# Create Gene name dataframe
+#df_gene <- as.data.frame(rownames(mat))
+#colnames(df_gene) <- "ensembl_gene_id"
+#df_gene = merge(x = df_gene, y = genes_information, by = "ensembl_gene_id", all.x = TRUE)
+# fix NA of BLANK values with ENSID
+#idx_to_fix = which(df_gene$mgi_symbol == "" | is.na(df_gene$mgi_symbol))
+#df_gene[idx_to_fix,]$mgi_symbol = as.vector(df_gene[idx_to_fix,]$ensembl_gene_id)
+#rownames(mat) = unique(df_gene[match(df_gene$ensembl_gene_id,rownames(mat)),]$mgi_symbol)
+# Create condition dataframe
+df <- as.data.frame(colData(rld)[,"condition"])
+colnames(df) <- "condition"
+rownames(df) <- rownames(colData(rld))
+# Plot the heatmap
+pheatmap(mat, annotation_col = df, show_rownames = T, cluster_rows=T, cluster_cols=FALSE)
+```
+
+```{r extract_gene_clust, message = F}
+library(gplots)
+
+# Read rld as RDS object from DESeq2_RUV_2Step_norm
+rld=readRDS("RUV_Normalization_27042016/HSC_RUV_rld.rds")
+
+heatmap_patway=function(GSEA_parsing_data,GeneSetName,rld,DEG=1,keySize=1){
+  # Extract DEG gene from geneset
+  if (DEG==1){
+    gene_signature = as.character(GSEA_parsing_data$ensembl_gene_id[GSEA_parsing_data$GeneSet==GeneSetName])
+  }
+  # All Genes
+  else{
+    gene_signature = as.character(GSEA_parsing_data$ensembl_gene_id)
+  }
+  mat <- assay(rld)[ which(rownames(rld) %in% gene_signature),]
+  mat <- mat - rowMeans(mat)
+  
+  # choose a color palette for the heat map
+  myheatcol <- rev(redgreen(75))
+  
+  # Change rownames
+  GeneSymbol=NULL
+  for (gene in rownames(mat)){
+    g = as.character(unique(GSEA_parsing_data$GENE.SYMBOL[GSEA_parsing_data$ensembl_gene_id==gene]))
+    GeneSymbol=c(GeneSymbol,g)
+  }
+  
+  # draw the heat map with heatmap.2
+  par(cex.main=1.2)
+  heatmap.2(mat, main=GeneSetName,
+            Colv = NA,
+            dendrogram = "row",
+            scale="row",
+            col=myheatcol,
+            density.info="none",
+            trace="none",
+            margins = c(7,8),
+            labRow = GeneSymbol,
+            keysize = keySize)
+}
+
+# HALLMARK GeneSet 
+# Down regulated genes (WT)
+DOWN.Hallmark_GeneSet = c("HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION",
+                          "HALLMARK_INFLAMMATORY_RESPONSE",
+                          "HALLMARK_KRAS_SIGNALING_UP",
+                          "HALLMARK_COAGULATION")
+for (i in DOWN.Hallmark_GeneSet){
+  heatmap_patway(GSEA_parsing_data = WT_GSEA_parsing.Hallmark,
+                 GeneSetName = i,
+                 rld)
+}
+
+
+# KEGG GeneSet 
+# Down regulated genes (WT)
+DOWN.KEGG_GeneSet = c("KEGG_CELL_ADHESION_MOLECULES_CAMS",
+                          "KEGG_ECM_RECEPTOR_INTERACTION",
+                          "KEGG_ADHERENS_JUNCTION")
+for (i in DOWN.KEGG_GeneSet){
+  heatmap_patway(GSEA_parsing_data = WT_GSEA_parsing.KEGG,
+                 GeneSetName = i,
+                 rld)
+}
+
+```
+
+# Specific pathway with no DEG but significantly enriched
+
+## Pathway enriched in HET condition with no DEGs in overlap
+
+```{r GeneSet_with_no_DEG, fig_height = 15, fig_width = 15}
+# Read rld as RDS object from DESeq2_RUV_2Step_norm
+rld=readRDS("RUV_Normalization_27042016/HSC_RUV_rld.rds")
+
+# HALLMARK_ADIPOGENESIS
+GeneSetName="HALLMARK_ADIPOGENESIS"
+GSEA_file="../GSEA/my_analysis.Gsea.1461755156354.Hallmark/HALLMARK_ADIPOGENESIS.xls"
+res_path = GSEA_parse(GSEA_file,AllGenes)
+
+# Heatmap
+heatmap_patway(GSEA_parsing_data = res_path,
+               GeneSetName = GeneSetName,
+               rld,
+               DEG=0)
+
+# HALLMARK_OXIDATIVE_PHOSPHORYLATION
+GeneSetName="HALLMARK_OXIDATIVE_PHOSPHORYLATION"
+GSEA_file="../GSEA/my_analysis.Gsea.1461755156354.Hallmark/HALLMARK_OXIDATIVE_PHOSPHORYLATION.xls"
+res_path = GSEA_parse(GSEA_file,AllGenes)
+
+# Heatmap
+heatmap_patway(GSEA_parsing_data = res_path,
+               GeneSetName = GeneSetName,
+               rld,
+               DEG=0)
+
+# HALLMARK_BILE_ACID_METABOLISM
+GeneSetName="HALLMARK_BILE_ACID_METABOLISM"
+GSEA_file="../GSEA/my_analysis.Gsea.1461755156354.Hallmark/HALLMARK_BILE_ACID_METABOLISM.xls"
+res_path = GSEA_parse(GSEA_file,AllGenes)
+
+# Heatmap
+heatmap_patway(GSEA_parsing_data = res_path,
+               GeneSetName = GeneSetName,
+               rld,
+               DEG=0)
+
+# KEGG_FATTY_ACID_METABOLISM
+GeneSetName="KEGG_FATTY_ACID_METABOLISM"
+GSEA_file="../GSEA/KEGG.Gsea.1461765083398/KEGG_FATTY_ACID_METABOLISM.xls"
+res_path = GSEA_parse(GSEA_file,AllGenes)
+
+# Heatmap
+heatmap_patway(GSEA_parsing_data = res_path,
+               GeneSetName = GeneSetName,
+               rld,
+               DEG=0)
+
+```
+
+
+```{r devel}
+
+```
+
+
+
+
