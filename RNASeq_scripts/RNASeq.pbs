@@ -130,43 +130,43 @@ STATS=`echo $PWD/stat`
 
 ### Solution Array
 i=`cat ${SAMPLE_LIST} | tail -n +${PBS_ARRAYID} | head -1`
-#echo "[`date +%c`][STEP 1] Trimmomatic starts"
-#java -jar $TRIMMOMATIC PE -threads $THREADS ${FASTQ}"$i"_1.clean.fq.gz ${FASTQ}"$i"_2.clean.fq.gz ${FASTQ}"$i"_1.clean.fq.trimm.gz ${FASTQ}"$i"_unpaired_r1 ${FASTQ}"$i"_2.clean.fq.trimm.gz ${FASTQ}"$i"_unpaired_r2 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
-#echo "[`date +%c`] Remove unpaired reads"
-#rm -fr ${FASTQ}"$i"_unpaired_r1 ${FASTQ}"$i"_unpaired_r2
+echo "[`date +%c`][STEP 1] Trimmomatic starts"
+java -jar $TRIMMOMATIC PE -threads $THREADS ${FASTQ}"$i"_1.clean.fq.gz ${FASTQ}"$i"_2.clean.fq.gz ${FASTQ}"$i"_1.clean.fq.trimm.gz ${FASTQ}"$i"_unpaired_r1 ${FASTQ}"$i"_2.clean.fq.trimm.gz ${FASTQ}"$i"_unpaired_r2 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+echo "[`date +%c`] Remove unpaired reads"
+rm -fr ${FASTQ}"$i"_unpaired_r1 ${FASTQ}"$i"_unpaired_r2
 
-#echo "[`date +%c`][STEP 2] FASTQC"
-#echo "[`date +%c`] Pre-trimming.."
-#mkdir -p ${FASTQ}"$i"_preTrimm
-#fastqc -t $THREADS ${FASTQ}"$i"_1.clean.fq.gz ${FASTQ}"$i"_2.clean.fq.gz -o ${FASTQ}"$i"_preTrimm
-#echo "[`date +%c`] Post-trimming.."
-#mkdir -p ${FASTQ}"$i"_postTrimm
-#fastqc -t $THREADS ${FASTQ}"$i"_1.clean.fq.trimm.gz ${FASTQ}"$i"_2.clean.fq.trimm.gz -o ${FASTQ}"$i"_postTrimm
+echo "[`date +%c`][STEP 2] FASTQC"
+echo "[`date +%c`] Pre-trimming.."
+mkdir -p ${FASTQ}"$i"_preTrimm
+fastqc -t $THREADS ${FASTQ}"$i"_1.clean.fq.gz ${FASTQ}"$i"_2.clean.fq.gz -o ${FASTQ}"$i"_preTrimm
+echo "[`date +%c`] Post-trimming.."
+mkdir -p ${FASTQ}"$i"_postTrimm
+fastqc -t $THREADS ${FASTQ}"$i"_1.clean.fq.trimm.gz ${FASTQ}"$i"_2.clean.fq.trimm.gz -o ${FASTQ}"$i"_postTrimm
 
-#echo "[`date +%c`][STEP 3] STAR Mapping - Using trimmed fastq"
-#STAR --genomeDir $INDEX_STAR --runThreadN $THREADS --readFilesIn ${FASTQ}"$i"_1.clean.fq.trimm.gz ${FASTQ}"$i"_2.clean.fq.trimm.gz --readFilesCommand zcat --genomeLoad LoadAndRemove --outFileNamePrefix "$i"_ --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMunmapped Within --outBAMsortingThreadN $THREADS
-#echo "[`date +%c`] Making STAR stats"
-#STAR_stats_for_R "$i"_Log.final.out $i > $STATS/$i.summary_stats
+echo "[`date +%c`][STEP 3] STAR Mapping - Using trimmed fastq"
+STAR --genomeDir $INDEX_STAR --runThreadN $THREADS --readFilesIn ${FASTQ}"$i"_1.clean.fq.trimm.gz ${FASTQ}"$i"_2.clean.fq.trimm.gz --readFilesCommand zcat --genomeLoad LoadAndRemove --outFileNamePrefix "$i"_ --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMunmapped Within --outBAMsortingThreadN $THREADS
+echo "[`date +%c`] Making STAR stats"
+STAR_stats_for_R "$i"_Log.final.out $i > $STATS/$i.summary_stats
 
-#echo "[`date +%c`][STEP 4] Filtering SAM/BAM file"
-#echo "[`date +%c`] SAM->BAM"
-#samtools view -@ $THREADS -S -b "$i"_Aligned.out.sam > "$i"_Aligned.out.bam
-#echo "[`date +%c`] Sorting BAM.."
-#samtools sort -@ $THREADS "$i"_Aligned.out.bam "$i".sort
-#echo "[`date +%c`] Indexing sorting BAM.."
-#samtools index $i.sort.bam
-#echo "[`date +%c`] Making the HQ BAM file.. (filtering out the MAPQ0 reads)"
-#samtools view -@ $THREADS -b -h -F4 -q255 $i.sort.bam > $i.HQ.bam
-#chmod +x $i.HQ.bam
-#rm "$i"_Aligned.out.bam
-#rm -fr "$i"_Aligned.out.sam
-#rm -fr "$i"__STARtmp
-#echo """[`date +%c`] Alignment DONE."""
+echo "[`date +%c`][STEP 4] Filtering SAM/BAM file"
+echo "[`date +%c`] SAM->BAM"
+samtools view -@ $THREADS -S -b "$i"_Aligned.out.sam > "$i"_Aligned.out.bam
+echo "[`date +%c`] Sorting BAM.."
+samtools sort -@ $THREADS "$i"_Aligned.out.bam "$i".sort
+echo "[`date +%c`] Indexing sorting BAM.."
+samtools index $i.sort.bam
+echo "[`date +%c`] Making the HQ BAM file.. (filtering out the MAPQ0 reads)"
+samtools view -@ $THREADS -b -h -F4 -q255 $i.sort.bam > $i.HQ.bam
+chmod +x $i.HQ.bam
+rm "$i"_Aligned.out.bam
+rm -fr "$i"_Aligned.out.sam
+rm -fr "$i"__STARtmp
+echo """[`date +%c`] Alignment DONE."""
 
-#echo "[`date +%c`] [STEP 5] Quantification procedure with HTSEQ"
-#htseq-count -f bam -s no $i.HQ.bam $GTF > $i.HQ.counts
-#echo "[`date +%c`] [STEP 5a] Quantification procedure with HTSEQ - STRANDED"
-#htseq-count -f bam $i.HQ.bam $GTF > $i.HQ.ss.counts
+echo "[`date +%c`] [STEP 5] Quantification procedure with HTSEQ"
+htseq-count -f bam -s no $i.HQ.bam $GTF > $i.HQ.counts
+echo "[`date +%c`] [STEP 5a] Quantification procedure with HTSEQ - STRANDED"
+htseq-count -f bam $i.HQ.bam $GTF > $i.HQ.ss.counts
 echo "[`date +%c`] [STEP 5a] Quantification procedure with HTSEQ - STRANDED REVERSE"
 htseq-count -s reverse -f bam $i.HQ.bam $GTF > $i.HQ.ss_rev.counts
 
