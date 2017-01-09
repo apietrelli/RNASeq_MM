@@ -2,7 +2,7 @@
 
 ## Install packages
 
-### STAR installation on EMACLINUX
+### STAR installation on EMAGLINUX
 
 Do all the command as SuperUser
 
@@ -60,6 +60,14 @@ done
 ## FASTQC
 
 ## STAR
+
+### MULTIQC
+
+```
+# summarize analysis FASTQC / STAR / DESEQ-HTSEQ etc
+multiqc .
+```
+
 
 ### Genome index
 
@@ -119,15 +127,27 @@ make -C gnu/gcc install
 ```
 
 ### sample command lines
-#  STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/homo_sapiens.releas.INGM/ --runThreadN 8 --readFilesIn ../../FASTQ.files/Sample_MM-431/Sample_MM-431_R1.fastq.gz ../../FASTQ.files/Sample_MM-431/Sample_MM-431_R2.fastq.gz --readFilesCommand zcat --outFileNamePrefix Sample_MM-431_ --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM > Sample_MM-431.STAR_mapping.log &
+#  STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/homo_sapiens.release.INGM/ --runThreadN 8 --readFilesIn ../../FASTQ.files/Sample_MM-431/Sample_MM-431_R1.fastq.gz ../../FASTQ.files/Sample_MM-431/Sample_MM-431_R2.fastq.gz --readFilesCommand zcat --outFileNamePrefix Sample_MM-431_ --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM > Sample_MM-431.STAR_mapping.log &
 
 # cycle for all fastq
 # cd ../../FASTQ.files/
 for i in `ls`; do
   echo "Entering $i dir";
   cd $i;
-  STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/homo_sapiens.releas.GRCh38.29122016/ --runThreadN 8 --readFilesIn "$i"_R1.fastq.gz "$i"_R2.fastq.gz --readFilesCommand zcat --outFileNamePrefix "$i"_ --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM > "$i".STAR_mapping.log ;
+  STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/homo_sapiens.release.GRCh38.29122016/ --runThreadN 8 --readFilesIn "$i"_R1.fastq.gz "$i"_R2.fastq.gz --readFilesCommand zcat --outFileNamePrefix "$i"_ --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM > "$i".STAR_mapping.log ;
   echo "$i mapped"  ;
   cd .. ;
-done
+done &
 ```
+
+### IGV
+
+```
+# check if remove unannotated
+# test whether STAR create BWig or similar formats
+# or: convert BAM to BED
+```
+
+### HTSEq
+
+### DESEQ
