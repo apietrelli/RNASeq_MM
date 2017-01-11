@@ -98,6 +98,7 @@ sed 's/chrMT/chrM/g' Homo_sapiens.GRCh38.dna.primary_assembly.renamed.fa > temp.
 ```
 ### the pre-compiled binary on server is too much memory consuming >>> try compiling from source using a stand-alone gcc installation
 
+# NOT WORKING:
 ```
 wget http://ftp.gnu.org/gnu/gsrc/gsrc-2014.10.11.tar.gz
 tar -zxvf gsrc-2014.10.11.tar.gz
@@ -106,21 +107,32 @@ cd gsrc-2014.10.11/
 ./configure --prefix=$HOME/gnu    # --prefix is directory to install the packages
                                   # Pick your --prefix by your wishes.
 . ./setup.sh                      # This just sets some ENV variables and appends to PATH
-                                 # and other variables to allow GSRC to work seamlessly.
-                                     # Put this line in your .bashrc.
-
-
+                                  # and other variables to allow GSRC to work seamlessly.
+                                  # Put this line in your .bashrc.
 cd gsrc
 make -C gnu/gcc MAKE_ARGS_PARALLEL="-j12"
 #(or make -C gnu/gcc MAKE_ARGS_PARALLEL="-jN" to speed up for a N-core system)
 ### error extracting /storage/luca/gsrc-2014.10.11/gnu/gcc/download/gcc-4.9.1.tar.gz
 ### do it manually. create "work" dir
 tar -zxvf /storage/luca/gsrc-2014.10.11/gnu/gcc/download/gcc-4.9.1.tar.gz  --no-same-owner --no-same-permissions -C work
-
 ### doesn't work!
-
 make -C gnu/gcc install
 ```
+
+# ATTEMPT2
+```
+http://stackoverflow.com/questions/9450394/how-to-install-gcc-piece-by-piece-with-gmp-mpfr-mpc-elf-without-shared-libra
+
+wget ftp://gcc.gnu.org/pub/gcc/infrastructure/gmp-4.3.2.tar.bz2
+bunzip2 gmp-4.3.2.tar.bz2
+tar xvf gmp-4.3.2.tar
+cd gmp-4.3.2
+./configure --prefix=/storage/luca/tmp/gcc
+make && make check && make install
+
+
+ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-4.8.5/gcc-4.8.5.tar.gz
+
 
 ### Mapping
 
