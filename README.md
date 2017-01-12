@@ -121,8 +121,12 @@ make -C gnu/gcc install
 
 # ATTEMPT2
 ```
-http://stackoverflow.com/questions/9450394/how-to-install-gcc-piece-by-piece-with-gmp-mpfr-mpc-elf-without-shared-libra
+# http://stackoverflow.com/questions/9450394/how-to-install-gcc-piece-by-piece-with-gmp-mpfr-mpc-elf-without-shared-libra
 
+# gcc infrastructure
+wget ftp://gcc.gnu.org/pub/gcc/infrastructure/
+
+# install GMP
 wget ftp://gcc.gnu.org/pub/gcc/infrastructure/gmp-4.3.2.tar.bz2
 bunzip2 gmp-4.3.2.tar.bz2
 tar xvf gmp-4.3.2.tar
@@ -130,8 +134,45 @@ cd gmp-4.3.2
 ./configure --prefix=/storage/luca/tmp/gcc
 make && make check && make install
 
+# install MPFR
+wget ftp://gcc.gnu.org/pub/gcc/infrastructure/mpfr-2.4.2.tar.bz2
+bunzip2 mpfr-2.4.2.tar.bz2
+tar xvf mpfr-2.4.2.tar
+cd mpfr-2.4.2
+./configure --prefix=/storage/luca/tmp/gcc --with-gmp=/storage/luca/tmp/gcc
+make && make check && make install
 
-ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-4.8.5/gcc-4.8.5.tar.gz
+# install MPC
+wget ftp://gcc.gnu.org/pub/gcc/infrastructure/mpc-0.8.1.tar.gz
+tar zxvf mpc-0.8.1.tar.gz
+cd mpc-0.8.1
+./configure --prefix=/storage/luca/tmp/gcc --with-gmp=/storage/luca/tmp/gcc --with-mpfr=/storage/luca/tmp/gcc
+make && make check && make install
+
+# install ELF
+wget http://www.mr511.de/software/libelf-0.8.13.tar.gz
+tar zxvf libelf-0.8.13.tar.gz
+cd libelf-0.8.13
+./configure --prefix=/storage/luca/tmp/gcc
+make && make check && make install
+
+# install GCC - different scratch dir in/storage/luca   
+mkdir tmp2
+wget ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-4.8.5/gcc-4.8.5.tar.gz
+tar zxvf gcc-4.8.5.tar.gz
+mkdir -p tmp2/gcc-4.8.5-scratch
+cd tmp2/gcc-4.8.5-scratch
+
+ ./../gcc-4.8.5/configure --disable-libstdcxx-pch --enable-languages=all --enable-libgomp --enable-lto --enable-threads=posix --enable-tls --with-gmp=/storage/luca/tmp/gcc --with-mpfr=/storage/luca/tmp/gcc --with-mpc=/storage/luca/tmp/gcc --with-libelf=/storage/luca/tmp/gcc --with-fpmath=sse
+make && make install
+
+# error >> checking for suffix of object files... configure: error: in `/home/manu/gcc/gcc/i686-pc-linux-gnu/libgcc':
+# see https://gcc.gnu.org/wiki/FAQ#configure_suffix
+# try suggested solution
+./contrib/download_prerequisites
+mkdir gcc-build
+# Then run the configure either by fully qualified path or by relative path while in the the gcc-build current working directory.
+# A makefile will be created in the gcc-build directory. Run make in the gcc-build current working directory to begin the build of GCC. 
 
 
 ### Mapping
