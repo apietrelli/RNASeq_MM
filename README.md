@@ -175,6 +175,7 @@ mkdir gcc-build
 # A makefile will be created in the gcc-build directory. Run make in the gcc-build current working directory to begin the build of GCC.
 
 # In the meanwhile, Alex Dobin indicized genome for us! So kind.
+http://labshare.cshl.edu/shares/gingeraslab/www-data/dobin/STAR/STARgenomes/GENCODE/GRCh38_Gencode25/
 
 ```
 
