@@ -197,12 +197,12 @@ STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/Homo_sapiens.GRCh38
 # cycle for all fastq
 # cd ../../FASTQ.files/
 for i in `ls`; do
-  echo "Entering $i dir";
+  echo "Entering $i dir" ;
   cd $i;
-  STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/homo_sapiens.release.GRCh38.29122016/ --runThreadN 8 --readFilesIn "$i"_R1.fastq.gz "$i"_R2.fastq.gz --readFilesCommand zcat --outFileNamePrefix "$i"_ --outSAMstrandField intronMotif --outFilterIntronMotifs RemoveNoncanonicalUnannotated --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM > "$i".STAR_mapping.log ;
-  echo "$i mapped"  ;
+  STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/Homo_sapiens.GRCh38.release.87_GENECODE.v25/ --genomeLoad LoadAndKeep --runThreadN 8 --readFilesIn "$i"_R1.fastq.gz "$i"_R2.fastq.gz --readFilesCommand zcat --outFileNamePrefix "$i"_  --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 16000000000 --outWigType bedGraph > "$i".STAR_mapping.log ;
+  echo "$i mapped" ;
   cd .. ;
-done &
+done > RNA-SEQ_30MM.STARmapping.13012016.log &
 ```
 
 ### IGV
