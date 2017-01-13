@@ -196,7 +196,9 @@ STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/Homo_sapiens.GRCh38
 
 # cycle for all fastq
 # cd ../../FASTQ.files/
-for i in `ls`; do
+ls > elenco
+head -10 elenco > elenco.part1  
+for i in `cat elenco.part1` ; do
   echo "Entering $i dir" ;
   cd $i;
   STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/Homo_sapiens.GRCh38.release.87_GENECODE.v25/ --genomeLoad LoadAndKeep --runThreadN 8 --readFilesIn "$i"_R1.fastq.gz "$i"_R2.fastq.gz --readFilesCommand zcat --outFileNamePrefix "$i"_  --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 16000000000 --outWigType bedGraph > "$i".STAR_mapping.log ;
