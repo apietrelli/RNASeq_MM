@@ -209,7 +209,7 @@ done > RNA-SEQ_30MM.STARmapping.13012016.log &
 cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/STAR_mapping
 ls ../../FASTQ.files/ > elenco
 head -10 elenco > elenco.part1
-for i in `cat elenco.part1` ; do
+for i in `cat elenco.attempt3` ; do
   echo "Mapping $i" ;
   date ;
   mkdir -p "$i" ;
@@ -225,6 +225,10 @@ ls ../../FASTQ.files/ > elenco
 tail -22 elenco > elenco.part2
 sed '/Sample_MM-431/d' elenco.part2 > temp ; mv temp elenco.part2
 # relaunch previuos w elenco.part2
+
+### error >> could not shut down?
+cat elenco.part1 elenco.part2 > elenco.attempt3
+
 ```
 
 
