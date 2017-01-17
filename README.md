@@ -245,3 +245,17 @@ cat elenco.part1 elenco.part2 > elenco.attempt3
 ### HTSEq
 
 ### DESEQ
+
+
+
+
+### FASTQ BACKUP ON NAS
+
+for i in Sample_MM-035 ; do 
+  echo "$i"_R1;
+  split -b2G --numeric-suffixes=1 "$i"/"$i"_R1.fastq.gz "$i"/"$i"_R1.fastq.gz.part-;
+  echo "$i"_R2;
+  split -b2G --numeric-suffixes=1 "$i"/"$i"_R2.fastq.gz "$i"/"$i"_R2.fastq.gz.part- ;
+    sudo rsync -ah --progress --exclude "*.gz" "$i"/ /media/NAS/RNAseq.30MM/FASTQ/ ;
+    sudo rm "$i"/*.part* ;
+done
