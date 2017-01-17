@@ -247,6 +247,8 @@ cat elenco.part1 elenco.part2 > elenco.attempt3
 
 ### Sorting and indexing BAM files
 
+---
+
 #### Example with Sample_KMS-11
 
 - Sorting Procedure using `samtools`
@@ -266,13 +268,18 @@ Sample_KMS-11_Aligned.out.bam | Sample_KMS-11_Aligned.out.sorted.bam
 --- | ---
 9.2G | **6.1G**
 
-NB : *Remove the Unsorted after sorting completed*
+NB : *Think about removing the Unsorted after sorting completed*
 
 - Indexing always using `samtools`
 
 ```
 samtools index Sample_KMS-11_Aligned.out.sorted.bam
 ```
+
+- Create BigWig using `deeptools` in particular with the `bedCoverage` command
+
+Following the [manual] (http://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html)
+for the usage
 
 #### Over all the samples with cycle
 
