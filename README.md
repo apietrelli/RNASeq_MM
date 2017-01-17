@@ -277,9 +277,19 @@ samtools index Sample_KMS-11_Aligned.out.sorted.bam
 ```
 
 - Create BigWig using `deeptools` in particular with the `bedCoverage` command
-
-Following the [manual] (http://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html)
+following the [manual] (http://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html)
 for the usage
+
+```
+# Reverse Strand
+bamCoverage -p 3 -b Sample_KMS-11_Aligned.out.sorted.bam --filterRNAstrand reverse -o Sample_KMS-11.rev.bw &
+
+# Forward Strand
+bamCoverage -p 3 -b Sample_KMS-11_Aligned.out.sorted.bam --filterRNAstrand forward -o Sample_KMS-11.fwd.bw 
+
+```
+
+**-p** is the number of processor used
 
 #### Over all the samples with cycle
 
