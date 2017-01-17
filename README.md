@@ -247,7 +247,7 @@ cat elenco.part1 elenco.part2 > elenco.attempt3
 
 ### Sorting and indexing BAM files
 
-**Example with Sample_KMS-11**
+#### Example with Sample_KMS-11
 
 - Sorting Procedure using `samtools`
 
@@ -272,6 +272,12 @@ NB : *Remove the Unsorted after sorting completed*
 
 ```
 samtools index Sample_KMS-11_Aligned.out.sorted.bam
+```
+
+#### Over all the samples with cycle
+
+```
+Code!
 ```
 
 ### IGV
