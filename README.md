@@ -302,7 +302,7 @@ bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsingRPKM --
 
 **-p** is the number of processor used
 
-#### Over all the samples with cycle
+#### Cycle for all the samples
 
 ```
 Code!
