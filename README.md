@@ -249,15 +249,29 @@ cat elenco.part1 elenco.part2 > elenco.attempt3
 
 **Example with Sample_KMS-11**
 
-Sorting Procedure using `samtools`
+- Sorting Procedure using `samtools`
+
+Limiting memory size to 200Mb to better handle the RAM limit because the sorting
+process is RAM consuming
 
 ```
-
-# Limiting memory size to 200Mb to better handle the RAM limit
 samtools sort -@ 5 -m 200M Sample_KMS-11_Aligned.out.bam Sample_KMS-11_Aligned.out.sorted
 [bam_sort_core] merging from 140 files...
+```
+Time elapsed **~ 33min**
 
-# Indexing
+The BAM SortedByCoordinate is largely reduced in size respect to the Unsorted one
+
+Sample_KMS-11_Aligned.out.bam | Sample_KMS-11_Aligned.out.sorted.bam
+--- | ---
+9.2G | **6.1G**
+
+NB : *Remove the Unsorted after sorting completed*
+
+- Indexing always using `samtools`
+
+```
+samtools index Sample_KMS-11_Aligned.out.sorted.bam
 ```
 
 ### IGV
