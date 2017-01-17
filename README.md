@@ -280,14 +280,25 @@ samtools index Sample_KMS-11_Aligned.out.sorted.bam
 following the [manual] (http://deeptools.readthedocs.io/en/latest/content/tools/bamCoverage.html)
 for the usage
 
+No Normalization
+
 ```
 # Reverse Strand
 bamCoverage -p 3 -b Sample_KMS-11_Aligned.out.sorted.bam --filterRNAstrand reverse -o Sample_KMS-11.rev.bw &
 
 # Forward Strand
-bamCoverage -p 3 -b Sample_KMS-11_Aligned.out.sorted.bam --filterRNAstrand forward -o Sample_KMS-11.fwd.bw 
-
+bamCoverage -p 3 -b Sample_KMS-11_Aligned.out.sorted.bam --filterRNAstrand forward -o Sample_KMS-11.fwd.bw
 ```
+With RPKM normalization allowed by bamCoverage
+```
+# Reverse Strand
+bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsingRPKM --filterRNAstrand reverse -o Sample_KMS-11.RPKM.rev.bw
+
+# Forward Strand
+bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsingRPKM --filterRNAstrand forward -o Sample_KMS-11.RPKM.fwd.bw
+```
+
+
 
 **-p** is the number of processor used
 
