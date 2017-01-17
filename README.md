@@ -1,5 +1,19 @@
 # RNASeq_MM
 
+## Sample Description
+
+Samples sequenced on **DATE**
+
+The Rna-Seq Illumina sequencing Library used was:
+
+** Total RNA Stranded (read2 strand) **
+
+With this library the **Read 2** follows the sense of the transcript instead of
+the first read
+
+*NB The strand of the library does not follow the sense of the transcript*
+
+
 ## Install packages
 
 ### STAR installation on EMAGLINUX
