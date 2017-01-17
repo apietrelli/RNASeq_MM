@@ -245,6 +245,22 @@ cat elenco.part1 elenco.part2 > elenco.attempt3
 
 ```
 
+### Sorting and indexing BAM files
+
+** Example with Sample_KMS-11 **
+
+#### Sorting Procedure
+
+Using `samtools`
+
+```
+
+# Limiting memory size to 200Mb to better handle the RAM limit
+samtools sort -@ 5 -m 200M Sample_KMS-11_Aligned.out.bam Sample_KMS-11_Aligned.out.sorted
+[bam_sort_core] merging from 140 files...
+
+# Indexing
+```
 
 ### IGV
 
@@ -261,17 +277,15 @@ cat elenco.part1 elenco.part2 > elenco.attempt3
 
 ### FASTQ BACKUP ON NAS
 
-```
-# sudo for i in Sample_MM-035 ; do
-#   echo "$i"_R1;
-#   split -b2G --numeric-suffixes=1 "$i"/"$i"_R1.fastq.gz "$i"/"$i"_R1.fastq.gz.part-;
-#   echo "$i"_R2;
-#   split -b2G --numeric-suffixes=1 "$i"/"$i"_R2.fastq.gz "$i"/"$i"_R2.fastq.gz.part- ;
-#   rsync -ah --progress --exclude "*.gz" "$i"/ /media/NAS/RNAseq.30MM/FASTQ/ ;
-#   rm "$i"/*.part* ;
-# done
 
-sudo for i in ls ; do
+Move FASTQ with "mv" command
+
+*NB Do as SuperUser*
+
+```
+sudo su
+
+for i in ls ; do
    echo "$i"_R1;
    split -b2G --numeric-suffixes=1 "$i"/"$i"_R1.fastq.gz "$i"/"$i"_R1.fastq.gz.part-;
    echo "$i"_R2;
@@ -279,4 +293,12 @@ sudo for i in ls ; do
    mkdir /media/NAS/RNAseq.30MM/FASTQ/"$i" ;
    mv "$i"/*.part* /media/NAS/RNAseq.30MM/FASTQ/"$i" ;
 done
+```
+
+# Note and others
+
+### rsync syntax
+
+```
+#   rsync -ah --progress --exclude "*.gz" "$i"/ /media/NAS/RNAseq.30MM/FASTQ/ ;
 ```
