@@ -247,11 +247,9 @@ cat elenco.part1 elenco.part2 > elenco.attempt3
 
 ### Sorting and indexing BAM files
 
-** Example with Sample_KMS-11 **
+**Example with Sample_KMS-11**
 
-#### Sorting Procedure
-
-Using `samtools`
+Sorting Procedure using `samtools`
 
 ```
 
