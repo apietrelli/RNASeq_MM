@@ -342,10 +342,10 @@ Move FASTQ with "mv" command
 ```
 sudo su
 
-for i in ls ; do
+for i in `ls` ; do
    echo "$i"_R1;
-   split -b2G --numeric-suffixes=1 "$i"/"$i"_R1.fastq.gz "$i"/"$i"_R1.fastq.gz.part-;
-   echo "$i"_R2;
+   split -b2G --numeric-suffixes=1 "$i"/"$i"_R1.fastq.gz "$i"/"$i"_R1.fastq.gz.part- ;
+   echo "$i"_R2 ;
    split -b2G --numeric-suffixes=1 "$i"/"$i"_R2.fastq.gz "$i"/"$i"_R2.fastq.gz.part- ;
    mkdir /media/NAS/RNAseq.30MM/FASTQ/"$i" ;
    mv "$i"/*.part* /media/NAS/RNAseq.30MM/FASTQ/"$i" ;
