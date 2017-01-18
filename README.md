@@ -298,14 +298,25 @@ bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsingRPKM --
 bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsingRPKM --filterRNAstrand forward -o Sample_KMS-11.RPKM.fwd.bw
 ```
 
-
-
 **-p** is the number of processor used
 
 #### Cycle for all the samples
 
 ```
-Code!
+cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/STAR_mapping/
+for i in `ls`;
+  do
+  echo "Start $i" `date`
+  echo "Sorting BAM file.."
+  samtools sort -@ 5 -m 3GB "$i"/"$i"_Aligned.out.bam "$i"_Aligned.out.sorted
+  echo "Indexing sorted file.."
+  samtools index "$i".out.sorted.bam
+  echo "Creating bigWig.."
+  bamCoverage -p 7 -b "$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand forward -o "$i".RPKM.fwd.bw &
+  bamCoverage -p 7 -b "$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand reverse -o "$i".RPKM.rev.bw
+  echo "End sample"
+done
+
 ```
 
 ### IGV
