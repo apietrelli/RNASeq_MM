@@ -326,6 +326,14 @@ done
 
 ### HTSEq
 
+```
+# For SENSE strand
+htseq-count -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.count.stats > Sample_KMS-11.count
+
+# For REVERSE strand
+htseq-count -s reverse -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.rev.count.stats > Sample_KMS-11.rev.count &
+```
+
 ### featureCounts
 
 SuperSpeed!!!
