@@ -304,8 +304,7 @@ bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsingRPKM --
 
 ```
 cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/STAR_mapping/
-for i in `ls`;
-  do
+for i in `ls`; do
   echo "Start $i" `date`
   echo "Sorting BAM file.."
   samtools sort -@ 5 -m 3GB "$i"/"$i"_Aligned.out.bam "$i"_Aligned.out.sorted
@@ -328,8 +327,21 @@ done
 
 ```
 
+## Counts per gene
+
 ### HTSEq
 
+### featureCounts
+
+SuperSpeed!!!
+
+```
+cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/
+mkdir featureCounts
+for i in `cat Samples_list.ID`; do
+  featureCounts -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 1 -T 5 -O -o featureCounts/"$i".union.featureCounts STAR_mapping/"$i"/"$i"_Aligned.out.sorted.bam;
+done
+```
 ### DESEQ
 
 ### FASTQ BACKUP ON NAS
