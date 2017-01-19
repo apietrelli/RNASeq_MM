@@ -302,12 +302,12 @@ cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/STAR_mapping/
 for i in `ls`; do
   echo "Start $i" `date`
   echo "Sorting BAM file.."
-  samtools sort -@ 5 -m 3GB "$i"/"$i"_Aligned.out.bam "$i"_Aligned.out.sorted
+  samtools sort -@ 5 -m 3GB "$i"/"$i"_Aligned.out.bam "$i"/"$i".out.sorted
   echo "Indexing sorted file.."
-  samtools index "$i".out.sorted.bam
+  samtools index "$i"/"$i".out.sorted.bam
   echo "Creating bigWig.."
-  bamCoverage -p 3 -b "$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand forward -o "$i".RPKM.fwd.bw &
-  bamCoverage -p 3 -b "$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand reverse -o "$i".RPKM.rev.bw
+  bamCoverage -p 3 -b "$i"/"$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand forward -o "$i"/"$i".RPKM.fwd.bw &
+  bamCoverage -p 3 -b "$i"/"$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand reverse -o "$i"/"$i".RPKM.rev.bw
   echo "End sample"
 done
 
@@ -327,7 +327,8 @@ done
 ### HTSEq
 
 ```
-# bam files sorted by pos. strabded
+# bam files sorted by pos. stranded
+
 htseq-count -r pos -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.count.stats > Sample_KMS-11.count &
 
 ### check warning:
