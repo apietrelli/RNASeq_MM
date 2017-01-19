@@ -306,8 +306,8 @@ for i in `ls`; do
   echo "Indexing sorted file.."
   samtools index "$i".out.sorted.bam
   echo "Creating bigWig.."
-  bamCoverage -p 7 -b "$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand forward -o "$i".RPKM.fwd.bw &
-  bamCoverage -p 7 -b "$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand reverse -o "$i".RPKM.rev.bw
+  bamCoverage -p 3 -b "$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand forward -o "$i".RPKM.fwd.bw &
+  bamCoverage -p 3 -b "$i".out.sorted.bam --normalizeUsingRPKM --filterRNAstrand reverse -o "$i".RPKM.rev.bw
   echo "End sample"
 done
 
@@ -327,11 +327,9 @@ done
 ### HTSEq
 
 ```
-# For SENSE strand
-htseq-count -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.count.stats > Sample_KMS-11.count
+# bam files sorted by pos. strabded 
+htseq-count -r pos -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.count.stats > Sample_KMS-11.count
 
-# For REVERSE strand
-htseq-count -s reverse -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.rev.count.stats > Sample_KMS-11.rev.count &
 ```
 
 ### featureCounts
