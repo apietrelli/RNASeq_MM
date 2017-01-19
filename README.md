@@ -331,6 +331,10 @@ done
 
 htseq-count -r pos -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.count.stats > Sample_KMS-11.count &
 
+htseq-count -r pos -s reverse -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.REV.count.stats > Sample_KMS-11.REV.count &
+
+cut -f1,7 Sample_KMS-11.union.featureCounts > Sample_KMS-11.featureCounts
+
 ### check warning:
 ### Warning: Mate pairing was ambiguous for 24853 records; mate key for first such record: ('HWI-1KL157:151:C4H67ACXX:5:1104:14343:23511', 'first', 'chr1', 28530, 'chr1', 28741, 312).
 ### 44056929 SAM alignment pairs processed.
@@ -345,7 +349,8 @@ SuperSpeed!!!
 cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/
 mkdir featureCounts
 for i in `cat Samples_list.ID`; do
-  featureCounts -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 1 -T 5 -O -o featureCounts/"$i".union.featureCounts STAR_mapping/"$i"/"$i"_Aligned.out.sorted.bam;
+# for i in Sample_KMS-11; do
+  featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 2 -T 5 -O -o featureCounts/"$i".paired.union.featureCounts STAR_mapping/"$i"/"$i"_Aligned.out.sorted.bam;
 done
 ```
 ### DESEQ
