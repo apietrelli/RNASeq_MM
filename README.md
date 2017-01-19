@@ -327,8 +327,12 @@ done
 ### HTSEq
 
 ```
-# bam files sorted by pos. strabded 
-htseq-count -r pos -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.count.stats > Sample_KMS-11.count
+# bam files sorted by pos. strabded
+htseq-count -r pos -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.count.stats > Sample_KMS-11.count &
+
+### check warning:
+### Warning: Mate pairing was ambiguous for 24853 records; mate key for first such record: ('HWI-1KL157:151:C4H67ACXX:5:1104:14343:23511', 'first', 'chr1', 28530, 'chr1', 28741, 312).
+### 44056929 SAM alignment pairs processed.
 
 ```
 
