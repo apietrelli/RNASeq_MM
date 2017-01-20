@@ -344,14 +344,18 @@ cut -f1,7 Sample_KMS-11.union.featureCounts > Sample_KMS-11.featureCounts
 ### featureCounts
 
 SuperSpeed!!!
+No cycle needed, because it takes multiple input file on the command-line
 
 ```
 cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/
 mkdir featureCounts
-for i in `cat Samples_list.ID`; do
-# for i in Sample_KMS-11; do
-  featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 2 -T 5 -O -o featureCounts/"$i".paired.union.featureCounts STAR_mapping/"$i"/"$i"_Aligned.out.sorted.bam;
-done
+
+# Create sample index for featureCounts
+ls STAR_mapping/*/*.bam > Samples_list.featureCounts
+
+# Run featureCounts multiple samples
+featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 2 -T 5 -O -o featureCounts/RNA-SEQ_30MM.paired.union.featureCounts `cat Samples_list.featureCounts` &> RNA-SEQ_30MM.featureCounts.log &
+
 ```
 ### DESEQ
 
