@@ -331,7 +331,7 @@ done
 
 htseq-count -r pos -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.count.stats > Sample_KMS-11.count &
 
-htseq-count -r pos -s reverse -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11_Aligned.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.REV.count.stats > Sample_KMS-11.REV.count &
+htseq-count -r pos -s reverse -f bam ../STAR_mapping/Sample_KMS-11/Sample_KMS-11.out.sorted.bam /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf 2> Sample_KMS-11.REV.count.stats > Sample_KMS-11.REV.count &
 
 cut -f1,7 Sample_KMS-11.union.featureCounts > Sample_KMS-11.featureCounts
 
