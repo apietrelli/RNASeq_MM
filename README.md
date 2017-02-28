@@ -356,6 +356,16 @@ ls STAR_mapping/*/*.bam > Samples_list.featureCounts
 # Run featureCounts multiple samples
 featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 2 -T 5 -O -o featureCounts/RNA-SEQ_30MM.paired.union.featureCounts `cat Samples_list.featureCounts` &> RNA-SEQ_30MM.featureCounts.log &
 
+# Run modified GRCh38_Gencode25 (gencode.v25.annotation.v2.gtf) WITH WHSC2-2
+cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/
+mkdir featureCounts.v2
+cp /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.v2.gtf
+### added lncWHSC-2 entry
+### REMEMBER: gene > transcript > exon entry
+
+featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.v2.gtf -s 2 -T 5 -O -o featureCounts.v2/RNA-SEQ_30MM.paired.union.featureCounts.v2 `cat Samples_list.featureCounts` &> RNA-SEQ_30MM.featureCounts.v2.log &
+### try on single sample unstranded
+featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.v2.gtf -T 5 -O -o featureCounts.v2/Sample_MM-263.featureCounts.v2 STAR_mapping/Sample_MM-263/Sample_MM-263.out.sorted.bam &
 ```
 ### DESEQ
 
