@@ -375,6 +375,19 @@ Check mean fragment size
 ```
 samtools view sample.bam | awk '{print $9}' | sort | uniq -c
 ```
+### RSEM
+
+Install RSEM and prepare reference genome. By default RSEM uses Bowtie. Use star to customize alignments.  
+```
+rsem-prepare-reference --gtf ./../../../../DATA/Genome/Annotation/gencode.v25.annotation.gtf -p 6 --star ./../../../../DATA/Genome/FASTA/GRCh38.primary_assembly.genome.fa ref/Gencode.v25
+### need running star only if re-run alignments on fastq files
+
+```
+Calculate expression based on STAR_mapping
+```
+rsem-calculate-expression --paired-end --alignments -p 6 --bam Sample_KMS-11/Sample_KMS-11.out.sorted.bam ref/Gencode.v25 Sample_KMS-11.out.sorted  
+### doesn't work > should re-run star with '--quantMode TranscriptomeSAM' option?
+```                         
 
 
 ### FASTQ BACKUP ON NAS
