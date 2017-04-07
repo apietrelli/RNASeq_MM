@@ -362,10 +362,19 @@ mkdir featureCounts.v2
 cp /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.v2.gtf
 ### added lncWHSC-2 entry
 ### REMEMBER: in gtf file mandatory structure is: gene > transcript > exon entries
+### FAILED!
+
+# Run featureCounts to obtain TRANSCRIPTS
+featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 2 -T 5 -O -g "transcript_id" -f -o featureCounts.v3/RNAseq.30MM.paired.union.featureCounts `cat Samples_list.featureCounts` &> RNA-SEQ_30MM.featureCounts.log &
+
+
 
 featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.v2.gtf -s 2 -T 5 -O -o featureCounts.v2/RNA-SEQ_30MM.paired.union.featureCounts.v2 `cat Samples_list.featureCounts` &> RNA-SEQ_30MM.featureCounts.v2.log &
 ### try on single sample unstranded
-featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.v2.gtf -T 5 -O -o featureCounts.v2/Sample_MM-263.featureCounts.v2 STAR_mapping/Sample_MM-263/Sample_MM-263.out.sorted.bam &
+featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 2 -T 5 -O -g "transcript_id" -f -o featureCounts.v3/Sample_MM-263.featureCounts.v3 STAR_mapping/Sample_MM-263/Sample_MM-263.out.sorted.bam &
+
+
+
 ```
 ### DESEQ
 
@@ -379,7 +388,8 @@ samtools view sample.bam | awk '{print $9}' | sort | uniq -c
 
 Install RSEM and prepare reference genome. By default RSEM uses Bowtie. Use star to customize alignments.  
 ```
-rsem-prepare-reference --gtf ./../../../../DATA/Genome/Annotation/gencode.v25.annotation.gtf -p 6 --star ./../../../../DATA/Genome/FASTA/GRCh38.primary_assembly.genome.fa ref/Gencode.v25
+rsem-prepare-reference --gtf ./../../../../DATA/Genome/Annotation/gencode.v25.annotation.gtf -p 8 --star ./../../../../DATA/Genome/FASTA/GRCh38.primary_assembly.genome.fa ref/Gencode.v25 --quantMode TranscriptomeSAM --sjdbGTFfile /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf --sjdbOverhang 88
+
 ### need running star only if re-run alignments on fastq files
 
 ```
