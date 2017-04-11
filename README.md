@@ -398,6 +398,9 @@ Calculate expression based on STAR_mapping
 rsem-calculate-expression --paired-end --alignments -p 6 --bam Sample_KMS-11/Sample_KMS-11.out.sorted.bam ref/Gencode.v25 Sample_KMS-11.out.sorted  
 ### doesn't work > should re-run star with '--quantMode TranscriptomeSAM' option?
 ```                         
+#### FPKM - TPM calculation
+
+deseq.analysis.R script
 
 
 ### FASTQ BACKUP ON NAS
