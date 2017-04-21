@@ -372,10 +372,24 @@ featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gen
 featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.v2.gtf -s 2 -T 5 -O -o featureCounts.v2/RNA-SEQ_30MM.paired.union.featureCounts.v2 `cat Samples_list.featureCounts` &> RNA-SEQ_30MM.featureCounts.v2.log &
 ### try on single sample unstranded
 featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 2 -T 5 -O -g "transcript_id" -f -o featureCounts.v3/Sample_MM-263.featureCounts.v3 STAR_mapping/Sample_MM-263/Sample_MM-263.out.sorted.bam &
+```
 
-
+### Cufflinks quantification
 
 ```
+cufflinks -o -G /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -p 4 --library-type fr-secondstrand  /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/STAR_mapping/Sample_KMS-11/Sample_KMS-11.out.sorted.bam
+
+cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/cufflinks
+ls ../Samples_list.ID > elenco
+for i in `cat elenco` ; do
+  cufflinks -o $i -G /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -p 4 --library-type fr-secondstrand  /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/STAR_mapping/"$i"/"$i".out.sorted.bam ;
+  echo "$i assembled" ;
+  date ;
+done > RNA-SEQ_30MM.cufflinks.21042017.log &
+
+```
+
+
 ### DESEQ
 
 ### normalization
