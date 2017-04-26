@@ -387,6 +387,10 @@ for i in `cat elenco` ; do
   date ;
 done > RNA-SEQ_30MM.cufflinks.21042017.log &
 
+awk 'BEGIN{FS="\t";OFS="\t"}{print "./"$0"/transcripts.gtf"}' elenco > assemblies.txt
+cuffmerge -g /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/GRCh38.primary_assembly.genome.fa -p 4 assemblies.txt
+
+
 ```
 
 
