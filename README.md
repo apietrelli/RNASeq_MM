@@ -448,3 +448,27 @@ done
 ```
 #   rsync -ah --progress --exclude "*.gz" "$i"/ /media/NAS/RNAseq.30MM/FASTQ/ ;
 ```
+
+### PIPELINE FROM SRA DATA
+
+```
+Method 1:
+download fastq files from SRA repository: https://trace.ncbi.nlm.nih.gov/Traces/sra/
+extract fastq files
+
+Method 2:
+#   Search in NCBI
+#   Click Send to on the top of the page, check the File radiobutton, select Accession List.
+#   Save this file in the location from which you are running the SRA Toolkit. >> SraAccList.txt
+
+prefetch --option-file SraAccList.txt
+fastq-dump -I --split-files /media/disk2/PUBLICDATA/downloaded/sra/*
+# then: create sub dir with all _1.fastq and _2.fastq files for each Sample
+cat *_1.fastq > SRXnumber1.R1.fastq
+cat *_2.fastq > SRXnumber1.R2.fastq
+
+# cat *_1.fastq > SRX1721420.R1.fastq
+# cat *_2.fastq > SRX1721420.R2.fastq
+
+# Mapping:
+STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/Homo_sapiens.GRCh38.release.87_GENECODE.v25/ --genomeLoad LoadAndRemove --runThreadN 8 --readFilesIn *R1.fastq *R2.fastq --outFileNamePrefix SRX1721419. --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 16000000000 --outWigType bedGraph > SRX1721419.STAR_mapping.log ;
