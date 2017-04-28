@@ -471,4 +471,10 @@ cat *_2.fastq > SRXnumber1.R2.fastq
 # cat *_2.fastq > SRX1721420.R2.fastq
 
 # Mapping:
-STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/Homo_sapiens.GRCh38.release.87_GENECODE.v25/ --genomeLoad LoadAndRemove --runThreadN 8 --readFilesIn *R1.fastq *R2.fastq --outFileNamePrefix SRX1721419. --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 16000000000 --outWigType bedGraph > SRX1721419.STAR_mapping.log ;
+STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/STAR/Homo_sapiens.GRCh38.release.87_GENECODE.v25/ --genomeLoad LoadAndRemove --runThreadN 8 --readFilesIn *R1.fastq *R2.fastq --outFileNamePrefix SRX1721420. --outSAMunmapped Within --outBAMsortingThreadN 8 --outSAMtype BAM SortedByCoordinate --limitBAMsortRAM 16000000000 --outWigType bedGraph > SRX1721420.STAR_mapping.log ;
+
+# BigWig
+# Reverse Strand
+bamCoverage -p 3 -b SRX1721420.Aligned.sortedByCoord.out.bam --filterRNAstrand reverse -o SRX1721420.REV.bw &
+# Forward Strand
+bamCoverage -p 3 -b SRX1721420.Aligned.sortedByCoord.out.bam --filterRNAstrand forward -o SRX1721420.FWD.bw
