@@ -390,7 +390,36 @@ done > RNA-SEQ_30MM.cufflinks.21042017.log &
 awk 'BEGIN{FS="\t";OFS="\t"}{print "./"$0"/transcripts.gtf"}' elenco > assemblies.txt
 cuffmerge -g /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/GRCh38.primary_assembly.genome.fa -p 4 assemblies.txt
 
+# merge cufflinks results in R
+setwd("/media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/cufflinks/
+fpkm.transcripts <- c()
+fpkm.genes <- c()
+# create directory names
+dirnames <- dir(pattern="Sample")
+# loop through all directories and grab fpkm columns
+for( i in 1:length(dirnames) ){
+  gname <- paste(dirnames[i], "/genes.fpkm_tracking",sep="")
+  tname <- paste(dirnames[i], "/isoforms.fpkm_tracking",sep="")
+  x <- read.table(file=gname, sep="\t", header=T, as.is=T)
+  y <- read.table(file=tname, sep="\t", header=T, as.is=T)
+  if (i==1) {
+    fpkm.transcripts <- y[,c("gene_id", "gene_short_name", "FPKM")]
+    fpkm.genes <- x[,c("gene_id", "gene_short_name", "FPKM")]
+    } else {
+    fpkm.transcripts <- cbind(fpkm.transcripts, y[,"FPKM"])
+    fpkm.genes <- cbind(fpkm.genes, x[,"FPKM"])
+    }
+}
+# name the columns
+colnames(fpkm.transcripts) <- c("gene.ID","gene.symbol",dirnames)
+colnames(fpkm.genes) <- c("gene.ID","gene.symbol",dirnames)
+# name the rows, they're all in the same order
+# rownames(fpkm.transcripts) <- y[,1]
+# rownames(fpkm.genes) <- x[,1]
 
+
+write.table(fpkm.transcripts, file="fpkm.transcripts.txt", sep="\t", row.names=FALSE)
+write.table(fpkm.genes, file="fpkm.genes.txt", sep="\t",row.names=FALSE)
 ```
 
 
