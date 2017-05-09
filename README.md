@@ -436,11 +436,11 @@ kallisto quant -i /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapie
 
 # cycling all samples
 cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/kallisto
-ls ../Samples_list.ID > elenc
+less ../Samples_list.ID > elenco
 for i in `cat elenco` ; do
   echo "Mapping $i" ;
   mkdir ./quantification/"$i"
-  kallisto quant -i /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapiens.GRCh38.cdna.all.idx -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/kallisto/quantification/"$i" -t 8 --plaintext --fusion /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"Si"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"Si"/"$i"_R1.fastq.gz ;
+  kallisto quant -i /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapiens.GRCh38.cdna.all.idx -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/kallisto/quantification/"$i" -t 8 --plaintext --fusion --rf-stranded /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R1.fastq.gz ;
   echo "$i mapped" ;
 done > RNA-SEQ_30MM.kallisto.09052017.log &
 
