@@ -440,10 +440,24 @@ less ../Samples_list.ID > elenco
 for i in `cat elenco` ; do
   echo "Mapping $i" ;
   mkdir ./quantification/"$i"
-  kallisto quant -i /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapiens.GRCh38.cdna.all.idx -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/kallisto/quantification/"$i" -t 8 --plaintext --fusion --rf-stranded /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R1.fastq.gz ;
+  kallisto quant -i /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapiens.GRCh38.cdna.all.idx -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/kallisto/quantification/"$i" -t 8 --plaintext --fusion --rf-stranded /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R2.fastq.gz ;
   echo "$i mapped" ;
 done > RNA-SEQ_30MM.kallisto.09052017.log &
 
+# generating bam file
+kallisto quant -i /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapiens.GRCh38.cdna.all.idx -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/kallisto/quantification/Sample_U-266 -t 1 --pseudobam --plaintext --rf-stranded /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/Sample_U-266/Sample_U-266_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/Sample_U-266/Sample_U-266_R2.fastq.gz > Sample_U-266.sam ;
+# sam files in current dir. why not in -o dir?!?  
+samtools view -bS Sample_U-266.sam > Sample_U-266.bam
+samtools sort Sample_U-266.bam > Sample_U-266.sorted.bam
+samtools index Sample_U-266.sorted.bam > Sample_U-266.sorted.bai
+
+for i in `cat elenco` ; do
+  echo "Mapping $i" ;
+  kallisto quant -i /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapiens.GRCh38.cdna.all.idx -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/kallisto/quantification/"$i" -t 1 --pseudobam --plaintext --fusion --rf-stranded /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R2.fastq.gz > "$i".sam ;
+echo "$i mapped" ;
+done > RNA-SEQ_30MM.kallisto.10052017.log &
+
+```
 
 ### DESEQ
 
