@@ -459,6 +459,14 @@ done > RNA-SEQ_30MM.kallisto.10052017.log &
 
 ```
 
+### ERICSCRIPT
+
+```
+# follow documentation on ericscript website to install dependencies. be care: ES requires samtools-0.1.19
+# set PATH to compiled samtools-0.1.19 in ~/.profile (not only in ~/.bashrc!!!)
+```
+
+
 ### DESEQ
 
 ### normalization
