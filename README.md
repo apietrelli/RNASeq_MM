@@ -468,13 +468,13 @@ done > RNA-SEQ_30MM.kallisto.10052017.log &
 mkdir /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/ericscript
 ./ericscript.pl -db ./lib -name Sample_KMS-11 -v -p 6 -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/ericscript/Sample_KMS-11 /media/disk2/DATA/FASTQ/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R2.fastq.gz
 ## ok it works
+## cycle it on all samples
 less /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/Samples_list.ID > elenco
 for i in `cat elenco` ; do
   echo "Working on $i" ;
   date ;
-  mkdir /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/ericscript/"$i" ;
-  ./ericscript.pl -db ./lib -name "$i" -v -p 6 -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/ericscript/"$i" /media/disk2/DATA/FASTQ/RNAseq.30MM/"$i"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/"$i"/"$i"_R1.fastq.gz
-  kallisto quant -i /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/Homo_sapiens.GRCh38.cdna.all.idx -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/kallisto/quantification/"$i" -t 8 --plaintext --fusion --rf-stranded /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/FASTQ/"$i"/"$i"_R2.fastq.gz ;
+  ### mkdir /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/ericscript/"$i" ; ### warning: not to be done, ericscript create dir on its own
+  ./ericscript.pl -db ./lib -name "$i" -v -p 6 --remove -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/ericscript/"$i" /media/disk2/DATA/FASTQ/RNAseq.30MM/"$i"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/"$i"/"$i"_R1.fastq.gz ;
   echo "$i analyzed" ;
   date ;
 done > RNA-SEQ_30MM.ericscript.15052017.log &
