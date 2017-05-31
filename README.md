@@ -481,6 +481,55 @@ done > RNA-SEQ_30MM.ericscript.15052017.log &
 
 ```
 
+### PIPELINE ON CINECA PICO SERVER
+
+```
+# installed ada package in R 3.3.1
+# installed blat as in http://genomic-identity.wikidot.com/install-blat
+# instelled seqtk
+# echo 'export PATH=$PATH:~/software/seqtk' >> ~/.bashrc
+# source ~/.bashrc
+
+module load intel/pe-xe-2016--binary
+module load r/3.3.1
+module load bwa/0.7.10
+module load gnu/4.8.3
+module load zlib/1.2.8--gnu--4.8.3
+module load samtools/0.1.19
+module load bedtools/2.21.0
+
+qsub -A lagnelli -I -l select=8:ncpus=8:mpiprocs:8,walltime=01:00:00 -q parallel -- /bin/bash
+
+./ericscript.pl -db ./lib -name Sample_KMS-11 -v -p 64 -o $WORK/Analisi/ericscript/Sample_KMS-11 $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz
+
+# submit PBS files (~/Dropbox/pico.cineca/ericscript.31052017.attempt1.sh)
+
+# START HERE
+
+#!/bin/bash
+#PBS -A lagnelli              
+#PBS -l walltime=1:00:00
+#PBS -l select=8:ncpus=8
+#
+cd $HOME/software/ericscript-0.5.5
+module load intel/pe-xe-2016--binary
+module load r/3.3.1
+module load bwa/0.7.10
+module load gnu/4.8.3
+module load zlib/1.2.8--gnu--4.8.3
+module load samtools/0.1.19
+module load bedtools/2.21.0
+echo
+echo The following nodes will be used to run this program:
+echo
+cat $PBS_NODEFILE
+echo
+mpirun -n 64 ./ericscript.pl -db ./lib -name Sample_KMS-11 -v -p 64 -o $WORK/Analisi/ericscript/Sample_KMS-11 $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz
+exit 0
+
+# qsub ericscript.31052017.attempt1.sh
+
+```
 
 ### DESEQ
 
@@ -494,7 +543,7 @@ samtools view sample.bam | awk '{print $9}' | sort | uniq -c
 
 Install RSEM and prepare reference genome. By default RSEM uses Bowtie. Use star to customize alignments.  
 ```
-rsem-prepare-reference --gtf ./../../../../DATA/Genome/Annotation/gencode.v25.annotation.gtf -p 8 --star ./../../../../DATA/Genome/FASTA/GRCh38.primary_assembly.genome.fa ref/Gencode.v25 --quantMode TranscriptomeSAM --sjdbGTFfile /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf --sjdbOverhang 88
+rsem-prepare-reference --gtf /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -p 8 --star media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/GRCh38.primary_assembly.genome.fa ref/Gencode.v25 --quantMode TranscriptomeSAM --sjdbGTFfile /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf --sjdbOverhang 88
 
 ### need running star only if re-run alignments on fastq files
 
