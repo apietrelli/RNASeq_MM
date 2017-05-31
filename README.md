@@ -474,7 +474,7 @@ for i in `cat elenco` ; do
   echo "Working on $i" ;
   date ;
   ### mkdir /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/ericscript/"$i" ; ### warning: not to be done, ericscript create dir on its own
-  ./ericscript.pl -db ./lib -name "$i" -v -p 6 --remove -o /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/ericscript/"$i" /media/disk2/DATA/FASTQ/RNAseq.30MM/"$i"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/"$i"/"$i"_R1.fastq.gz ;
+  ./ericscript.pl -db ./lib -name "$i" -p 6 --remove -o /media/disk2/DATA/RNASEQ_ANALYSIS/30MM/ericscript/"$i" /media/disk2/DATA/FASTQ/RNAseq.30MM/"$i"/"$i"_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/"$i"/"$i"_R1.fastq.gz ;
   echo "$i analyzed" ;
   date ;
 done > RNA-SEQ_30MM.ericscript.15052017.log &
