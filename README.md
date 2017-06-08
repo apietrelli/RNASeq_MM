@@ -349,6 +349,10 @@ cut -f1,7 Sample_KMS-11.union.featureCounts > Sample_KMS-11.featureCounts
 SuperSpeed!!!
 No cycle needed, because it takes multiple input file on the command-line
 
+dir featurecounts --> ENSG
+dir featurecounts.v2 --> ENSG + WHSC2-2
+dir featurecounts.v3 --> ENST
+
 ```
 cd /media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/
 mkdir featureCounts
@@ -369,8 +373,6 @@ cp /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotati
 
 # Run featureCounts to obtain TRANSCRIPTS
 featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s 2 -T 5 -O -g "transcript_id" -f -o featureCounts.v3/RNAseq.30MM.paired.union.featureCounts `cat Samples_list.featureCounts` &> RNA-SEQ_30MM.featureCounts.log &
-
-
 
 featureCounts -p -a /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.v2.gtf -s 2 -T 5 -O -o featureCounts.v2/RNA-SEQ_30MM.paired.union.featureCounts.v2 `cat Samples_list.featureCounts` &> RNA-SEQ_30MM.featureCounts.v2.log &
 ### try on single sample unstranded
@@ -488,7 +490,12 @@ done > RNA-SEQ_30MM.ericscript.15052017.log &
 # installed blat as in http://genomic-identity.wikidot.com/install-blat
 # instelled seqtk
 # echo 'export PATH=$PATH:~/software/seqtk' >> ~/.bashrc
+# echo 'export PATH=$PATH:~/software/seqtk' >> ~/.bashrc
+# echo 'export PATH=$PATH:~/software/seqtk' >> ~/.bashrc
+# echo 'export PATH=$PATH:~/software/seqtk' >> ~/.bashrc
 # source ~/.bashrc
+
+qsub -A uMI17_OncAgP -I -l select=15:ncpus=8:mem=64Gb;walltime=48:00:00 -q parallel -- /bin/bash
 
 module load intel/pe-xe-2016--binary
 module load r/3.3.1
@@ -498,16 +505,14 @@ module load zlib/1.2.8--gnu--4.8.3
 module load samtools/0.1.19
 module load bedtools/2.21.0
 
-qsub -A lagnelli -I -l select=8:ncpus=8:mpiprocs:8,walltime=01:00:00 -q parallel -- /bin/bash
-
-./ericscript.pl -db ./lib -name Sample_KMS-11 -v -p 64 -o $WORK/Analisi/ericscript/Sample_KMS-11 $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz
+# rm -fr $WORK/Analisi/ericscript/Sample_KMS-11
+./ericscript.pl -db ./lib -name Sample_KMS-11 -v -p 120 -o $WORK/Analisi/ericscript/Sample_KMS-11 $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz
 
 # submit PBS files (~/Dropbox/pico.cineca/ericscript.31052017.attempt1.sh)
-
 # START HERE
 
 #!/bin/bash
-#PBS -A lagnelli              
+#PBS -A        
 #PBS -l walltime=1:00:00
 #PBS -l select=8:ncpus=8
 #
