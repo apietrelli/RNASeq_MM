@@ -396,7 +396,7 @@ awk 'BEGIN{FS="\t";OFS="\t"}{print "./"$0"/transcripts.gtf"}' elenco > assemblie
 cuffmerge -g /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf -s /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/GRCh38.primary_assembly.genome.fa -p 4 assemblies.txt
 
 # merge cufflinks results in R
-setwd("/media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/cufflinks/
+setwd("/media/emaglinux/0DBF12730DBF1273/Rshared/RNA-SEQ_30MM/Analisi/cufflinks/")
 fpkm.transcripts <- c()
 fpkm.genes <- c()
 # create directory names
@@ -406,7 +406,9 @@ for( i in 1:length(dirnames) ){
   gname <- paste(dirnames[i], "/genes.fpkm_tracking",sep="")
   tname <- paste(dirnames[i], "/isoforms.fpkm_tracking",sep="")
   x <- read.table(file=gname, sep="\t", header=T, as.is=T)
+  x = x [order(x$tracking_id ),]
   y <- read.table(file=tname, sep="\t", header=T, as.is=T)
+  y = y [order(y$tracking_id ),]
   if (i==1) {
     fpkm.transcripts <- y[,c("gene_id", "gene_short_name", "FPKM")]
     fpkm.genes <- x[,c("gene_id", "gene_short_name", "FPKM")]
@@ -418,8 +420,11 @@ for( i in 1:length(dirnames) ){
 # name the columns
 colnames(fpkm.transcripts) <- c("gene.ID","gene.symbol",dirnames)
 colnames(fpkm.genes) <- c("gene.ID","gene.symbol",dirnames)
-# name the rows, they're all in the same order
-# rownames(fpkm.transcripts) <- y[,1]
+# name the rows
+fpkm.transcripts = fpkm.transcripts [ order(fpkm.transcripts$gene.ID ), ]
+y = y[order(y$gene_id),]  
+all(y$gene_id == fpkm.transcripts$gene.ID)
+rownames(fpkm.transcripts) <- y[,1]
 # rownames(fpkm.genes) <- x[,1]
 
 
@@ -508,13 +513,14 @@ module load bedtools/2.21.0
 # rm -fr $WORK/Analisi/ericscript/Sample_KMS-11
 ./ericscript.pl -db ./lib -name Sample_KMS-11 -v -p 120 -o $WORK/Analisi/ericscript/Sample_KMS-11 $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz
 
-# submit PBS files (~/Dropbox/pico.cineca/ericscript.31052017.attempt1.sh)
+# submit PBS files (~/Dropbox/pico.cineca/ericscript.31052017.attempt3.sh)
 # START HERE
 
 #!/bin/bash
-#PBS -A        
-#PBS -l walltime=1:00:00
-#PBS -l select=8:ncpus=8
+#PBS -A uMI17_OncAgP             
+#PBS -l walltime=48:00:00
+#PBS -l select=15:ncpus=8:mem=64Gb
+#PBS -q parallel    
 #
 cd $HOME/software/ericscript-0.5.5
 module load intel/pe-xe-2016--binary
@@ -529,10 +535,10 @@ echo The following nodes will be used to run this program:
 echo
 cat $PBS_NODEFILE
 echo
-mpirun -n 64 ./ericscript.pl -db ./lib -name Sample_KMS-11 -v -p 64 -o $WORK/Analisi/ericscript/Sample_KMS-11 $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz
+rm -fr $WORK/Analisi/ericscript/Sample_KMS-11
+./ericscript.pl -db ./lib -name Sample_KMS-11 -v -p 120 -o $WORK/Analisi/ericscript/Sample_KMS-11 $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz $CINECA_SCRATCH/RNAseq.30MM/Sample_KMS-11/Sample_KMS-11_R1.fastq.gz > Sample_KMS-11.log
 exit 0
-
-# qsub ericscript.31052017.attempt1.sh
+# qsub ericscript.31052017.attempt3.sh
 
 ```
 
