@@ -290,10 +290,10 @@ bamCoverage -p 3 -b Sample_KMS-11_Aligned.out.sorted.bam --filterRNAstrand forwa
 With RPKM normalization allowed by bamCoverage
 ```
 # Reverse Strand
-bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsingRPKM --filterRNAstrand reverse -o Sample_KMS-11.RPKM.rev.bw
+bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsing RPKM --filterRNAstrand reverse -o Sample_KMS-11.RPKM.rev.bw
 
 # Forward Strand
-bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsingRPKM --filterRNAstrand forward -o Sample_KMS-11.RPKM.fwd.bw
+bamCoverage -p 7 -b Sample_KMS-11_Aligned.out.sorted.bam --normalizeUsing RPKM --filterRNAstrand forward -o Sample_KMS-11.RPKM.fwd.bw
 ```
 
 **-p** is the number of processor used
@@ -427,10 +427,24 @@ all(y$gene_id == fpkm.transcripts$gene.ID)
 rownames(fpkm.transcripts) <- y[,1]
 # rownames(fpkm.genes) <- x[,1]
 
-
-write.table(fpkm.transcripts, file="fpkm.transcripts.txt", sep="\t", row.names=TRUE)
-write.table(fpkm.genes, file="fpkm.genes.txt", sep="\t",row.names=FALSE)
 ```
+
+### CIRCULAR RNA
+
+```
+# test
+cat /media/disk2/DATA/FASTQ/RNAseq.30MM/Sample_MM-021/*R1*.fastq.gz* > /media/disk2/DATA/FASTQ/RNAseq.30MM/Sample_MM-021/Sample_MM-021_R1.fastq.gz
+cat /media/disk2/DATA/FASTQ/RNAseq.30MM/Sample_MM-021/*R2*.fastq.gz* > /media/disk2/DATA/FASTQ/RNAseq.30MM/Sample_MM-021/Sample_MM-021_R2.fastq.gz
+STAR --genomeDir /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf --genomeLoad LoadAndRemove --runThreadN 8 --readFilesIn /media/disk2/DATA/FASTQ/RNAseq.30MM/Sample_MM-021/Sample_MM-021_R1.fastq.gz /media/disk2/DATA/FASTQ/RNAseq.30MM/Sample_MM-021/Sample_MM-021_R2.fastq.gz --readFilesCommand zcat --outReadsUnmapped Fastx --quantMode GeneCounts --chimSegmentMin 15 --chimJunctionOverhangMin 15 --outSAMstrandField intronMotif --outFileNamePrefix Sample_MM-021_ --outBAMsortingThreadN 8 --outSAMtype BAM Unsorted > Sample_MM-021.test_STAR_circ.log ;
+
+# install STARchip according to http://starchip.readthedocs.io/en/latest/
+cd /media/emaglinux/0DBF12730DBF1273/software/starchip/starchip/
+./setup.sh /media/emaglinux/0DBF12730DBF1273/DATA/Genome/Annotation/gencode.v25.annotation.gtf /media/emaglinux/0DBF12730DBF1273/DATA/Genome/FASTA/GRCh38.primary_assembly.genome.fa ./../genome/
+
+
+```
+
+
 
 #### kallisto
 
